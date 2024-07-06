@@ -230,105 +230,103 @@ public class Utf8JsonFormatter : ITextFormatter
                 writer.WriteStringValue(str);
                 break;
             case ValueType vt:
-                if (vt is int i)
+                switch (vt)
                 {
-                    writer.WriteNumberValue(i);
-                }
-                else if (vt is uint ui)
-                {
-                    writer.WriteNumberValue(ui);
-                }
-                else if (vt is long l)
-                {
-                    writer.WriteNumberValue(l);
-                }
-                else if (vt is ulong ul)
-                {
-                    writer.WriteNumberValue(ul);
-                }
-                else if (vt is decimal dc)
-                {
-                    writer.WriteNumberValue(dc);
-                }
-                else if (vt is byte bt)
-                {
-                    writer.WriteNumberValue(bt);
-                }
-                else if (vt is sbyte sb)
-                {
-                    writer.WriteNumberValue(sb);
-                }
-                else if (vt is short s)
-                {
-                    writer.WriteNumberValue(s);
-                }
-                else if (vt is ushort us)
-                {
-                    writer.WriteNumberValue(us);
-                }
-                else if (vt is double d)
-                {
-                    writer.WriteNumberValue(d);
-                }
-                else if (vt is float f)
-                {
-                    writer.WriteNumberValue(f);
-                }
-                else if (vt is bool b)
-                {
-                    writer.WriteBooleanValue(b);
-                }
-                else if (vt is char c1)
-                {
-                    writer.WriteStringValue([c1]);
-                }
-                else if (vt is DateTime dt)
-                {
-                    writer.WriteStringValue(dt);
-                }
-                else if (vt is DateTimeOffset dto)
-                {
-                    writer.WriteStringValue(dto);
-                }
+                    case int i:
+                        writer.WriteNumberValue(i);
+                        break;
+                    case uint ui:
+                        writer.WriteNumberValue(ui);
+                        break;
+                    case long l:
+                        writer.WriteNumberValue(l);
+                        break;
+                    case ulong ul:
+                        writer.WriteNumberValue(ul);
+                        break;
+                    case decimal dc:
+                        writer.WriteNumberValue(dc);
+                        break;
+                    case byte bt:
+                        writer.WriteNumberValue(bt);
+                        break;
+                    case sbyte sb:
+                        writer.WriteNumberValue(sb);
+                        break;
+                    case short s:
+                        writer.WriteNumberValue(s);
+                        break;
+                    case ushort us:
+                        writer.WriteNumberValue(us);
+                        break;
+                    case double d:
+                        writer.WriteNumberValue(d);
+                        break;
+                    case float f:
+                        writer.WriteNumberValue(f);
+                        break;
+                    case bool b:
+                        writer.WriteBooleanValue(b);
+                        break;
+                    case char c1:
+                        writer.WriteStringValue([c1]);
+                        break;
+                    case DateTime dt:
+                        writer.WriteStringValue(dt);
+                        break;
+                    case DateTimeOffset dto:
+                        writer.WriteStringValue(dto);
+                        break;
+                    case TimeSpan timeSpan:
+                    {
+                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
+                                format: default))
+                        {
+                            writer.WriteStringValue(buffer[..written]);
+                        }
 
-                else if (vt is TimeSpan timeSpan)
-                {
-                    Span<char> buffer = stackalloc char[_spanBufferSize];
-                    if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
-                            format: default))
-                    {
-                        writer.WriteStringValue(buffer[..written]);
+                        break;
                     }
-                }
-                else if (vt is DateOnly dateOnly)
-                {
-                    Span<char> buffer = stackalloc char[_spanBufferSize];
-                    if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
-                            format: DateOnlyFormat))
+                    case DateOnly dateOnly:
                     {
-                        writer.WriteStringValue(buffer[..written]);
+                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
+                                format: DateOnlyFormat))
+                        {
+                            writer.WriteStringValue(buffer[..written]);
+                        }
+
+                        break;
                     }
-                }
-                else if (vt is TimeOnly timeOnly)
-                {
-                    Span<char> buffer = stackalloc char[_spanBufferSize];
-                    if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
-                            format: TimeFormat))
+                    case TimeOnly timeOnly:
                     {
-                        writer.WriteStringValue(buffer[..written]);
+                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
+                                format: TimeFormat))
+                        {
+                            writer.WriteStringValue(buffer[..written]);
+                        }
+
+                        break;
                     }
-                }
-                else if (vt.GetType().IsEnum)
-                {
-                    writer.WriteStringValue(vt.ToString());
-                }
-                else if (vt is ISpanFormattable span)
-                {
-                    Span<char> buffer = stackalloc char[_spanBufferSize];
-                    if (span.TryFormat(buffer, out int written, provider: _formatProvider,
-                            format: default))
+                    default:
                     {
-                        writer.WriteRawValue(buffer[..written]);
+                        if (vt.GetType().IsEnum)
+                        {
+                            writer.WriteStringValue(vt.ToString());
+                        }
+                        else if (vt is ISpanFormattable span)
+                        {
+                            Span<char> buffer = stackalloc char[_spanBufferSize];
+                            if (span.TryFormat(buffer, out int written, provider: _formatProvider,
+                                    format: default))
+                            {
+                                writer.WriteRawValue(buffer[..written]);
+                            }
+                        }
+
+                        break;
                     }
                 }
 
