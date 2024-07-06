@@ -6,7 +6,7 @@ using Serilog.Templates;
 
 namespace Serilog.Extensions.Formatting.Benchmark;
 
-[ShortRunJob]
+[SimpleJob]
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 [CategoriesColumn]

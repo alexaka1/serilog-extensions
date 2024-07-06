@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using Serilog.Core;
 using Serilog.Enrichers.Sensitive;
 using Serilog.Exceptions;
@@ -9,6 +10,8 @@ namespace Serilog.Extensions.Formatting.Benchmark;
 
 [SimpleJob]
 [MemoryDiagnoser]
+[GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+[CategoriesColumn]
 public class JsonFormatterNamingBenchmark
 {
     private Exception _exception = null!;
@@ -65,18 +68,21 @@ public class JsonFormatterNamingBenchmark
     }
 
     [Benchmark]
+    [BenchmarkCategory("EmitLogEvent")]
     public void EmitLogEvent()
     {
         _jsonLog.Information(_exception, "Hello, {Name}!", "World");
     }
 
     [Benchmark]
+    [BenchmarkCategory("IntProperties")]
     public void IntProperties()
     {
         _jsonLog.Information(_exception, "Hello, {A} {B} {C}!", 1, 2, 3);
     }
 
     [Benchmark]
+    [BenchmarkCategory("ComplexProperties")]
     public void ComplexPropertiesUtf8()
     {
         _jsonLog.Information(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1,
