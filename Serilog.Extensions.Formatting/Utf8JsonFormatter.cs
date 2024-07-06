@@ -83,7 +83,7 @@ public class Utf8JsonFormatter : ITextFormatter
         writer.WriteString(MessageTemplatePropertyName, logEvent.MessageTemplate.Text);
         if (_renderMessage)
         {
-            writer.WriteString(RenderedMessagePropertyName, logEvent.MessageTemplate.Render(logEvent.Properties));
+            writer.WriteString(RenderedMessagePropertyName, logEvent.MessageTemplate.Render(logEvent.Properties, _formatProvider));
         }
 
         if (logEvent.TraceId != null)
@@ -146,7 +146,7 @@ public class Utf8JsonFormatter : ITextFormatter
     /// </summary>
     /// <param name="stream">The stream to write to.</param>
     /// <returns>The <see cref="Utf8JsonWriter" /> instance.</returns>
-    public virtual Utf8JsonWriter GetWriter(Stream stream)
+    private Utf8JsonWriter GetWriter(Stream stream)
     {
         _writer.Reset(stream);
         return _writer;
