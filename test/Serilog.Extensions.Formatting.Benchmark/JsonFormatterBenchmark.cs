@@ -61,7 +61,7 @@ public class JsonFormatterBenchmark
     }
 
     [BenchmarkCategory("ComplexProperties")]
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public void ComplexProperties()
     {
         _jsonLog.Information(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1, s_propertyValue2);
