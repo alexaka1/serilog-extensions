@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using Serilog.Context;
 using Serilog.Core;
 using Serilog.Enrichers.Sensitive;
@@ -11,6 +12,7 @@ namespace Serilog.Extensions.Formatting.Benchmark;
 
 [SimpleJob]
 [MemoryDiagnoser]
+[GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByParams)]
 public class JsonFormatterEnrichBenchmark
 {
     private IEnumerable<IDisposable> _contexts = null!;

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
 using Serilog.Core;
 using Serilog.Enrichers.Sensitive;
 using Serilog.Exceptions;
@@ -9,6 +10,7 @@ namespace Serilog.Extensions.Formatting.Benchmark;
 
 [SimpleJob]
 [MemoryDiagnoser]
+[GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByParams)]
 public class JsonFormatterNamingBenchmark
 {
     private Exception _exception = null!;

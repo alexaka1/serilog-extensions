@@ -23,8 +23,4 @@
     <ProjectReference Include="..\..\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="BenchmarkDotNet.Artifacts\" />
-  </ItemGroup>
-
 </Project>
