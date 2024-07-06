@@ -22,19 +22,7 @@ public class Utf8JsonFormatter : ITextFormatter
     private readonly CultureInfo _formatProvider;
     private readonly bool _renderMessage;
     private readonly Utf8JsonWriter _writer;
-    private const string TimestampPropertyName = "Timestamp";
-    private const string LevelPropertyName = "Level";
-    private const string MessageTemplatePropertyName = "MessageTemplate";
-    private const string RenderedMessagePropertyName = "RenderedMessage";
-    private const string TraceIdPropertyName = "TraceId";
-    private const string SpanIdPropertyName = "SpanId";
-    private const string ExceptionPropertyName = "Exception";
-    private const string PropertiesPropertyName = "Properties";
-    private const string RenderingsPropertyName = "Renderings";
-    private const string NullPropertyName = "null";
-    private const string TypeTagPropertyName = "_typeTag";
-    private const string FormatPropertyName = "Format";
-    private const string RenderingPropertyName = "Rendering";
+    private readonly JsonLogPropertyNames _names;
     private const string NoQuotingOfStrings = "l";
     private const string DateOnlyFormat = "yyyy-MM-dd";
     private const string TimeFormat = "O";
@@ -51,8 +39,11 @@ public class Utf8JsonFormatter : ITextFormatter
         bool renderMessage = false,
         IFormatProvider? formatProvider = null,
         int spanBufferSize = 64,
-        bool skipValidation = true)
+        bool skipValidation = true,
+        JsonNamingPolicy? namingPolicy = null)
     {
+        var namingPolicy1 = namingPolicy ?? new DefaultNamingPolicy();
+        _names = new JsonLogPropertyNames(namingPolicy1);
         _renderMessage = renderMessage;
         _spanBufferSize = spanBufferSize;
         _closingDelimiter = closingDelimiter ?? Environment.NewLine;
@@ -78,32 +69,33 @@ public class Utf8JsonFormatter : ITextFormatter
 
         var writer = GetWriter(str);
         writer.WriteStartObject();
-        writer.WriteString(TimestampPropertyName, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
-        writer.WriteString(LevelPropertyName, Enum.GetName(logEvent.Level));
-        writer.WriteString(MessageTemplatePropertyName, logEvent.MessageTemplate.Text);
+        writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
+        writer.WriteString(_names.Level, Enum.GetName(logEvent.Level));
+        writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
         if (_renderMessage)
         {
-            writer.WriteString(RenderedMessagePropertyName, logEvent.MessageTemplate.Render(logEvent.Properties, _formatProvider));
+            writer.WriteString(_names.RenderedMessage,
+                logEvent.MessageTemplate.Render(logEvent.Properties, _formatProvider));
         }
 
         if (logEvent.TraceId != null)
         {
-            writer.WriteString(TraceIdPropertyName, logEvent.TraceId.Value.ToString());
+            writer.WriteString(_names.TraceId, logEvent.TraceId.Value.ToString());
         }
 
         if (logEvent.SpanId != null)
         {
-            writer.WriteString(SpanIdPropertyName, logEvent.SpanId.Value.ToString());
+            writer.WriteString(_names.SpanId, logEvent.SpanId.Value.ToString());
         }
 
         if (logEvent.Exception != null)
         {
-            writer.WriteString(ExceptionPropertyName, logEvent.Exception.ToString());
+            writer.WriteString(_names.Exception, logEvent.Exception.ToString());
         }
 
         if (logEvent.Properties.Count != 0)
         {
-            writer.WriteStartObject(PropertiesPropertyName);
+            writer.WriteStartObject(_names.Properties);
             foreach (var property in logEvent.Properties)
             {
                 writer.WritePropertyName(property.Key);
@@ -122,7 +114,7 @@ public class Utf8JsonFormatter : ITextFormatter
         //
         // if (tokensWithFormat.Length != 0)
         // {
-        //     writer.WriteStartObject(RenderingsPropertyName);
+        //     writer.WriteStartObject(_names.Renderings);
         //     WriteRenderingsValues(tokensWithFormat, logEvent.Properties, writer);
         //     writer.WriteEndObject();
         // }
@@ -186,7 +178,7 @@ public class Utf8JsonFormatter : ITextFormatter
             }
             else
             {
-                writer.WritePropertyName(NullPropertyName);
+                writer.WritePropertyName(_names.Null);
             }
 
             Visit(element.Value, writer);
@@ -207,7 +199,7 @@ public class Utf8JsonFormatter : ITextFormatter
 
         if (value.TypeTag is not null)
         {
-            writer.WriteString(TypeTagPropertyName, value.TypeTag);
+            writer.WriteString(_names.TypeTag, value.TypeTag);
         }
 
         writer.WriteEndObject();
@@ -355,8 +347,8 @@ public class Utf8JsonFormatter : ITextFormatter
             foreach (var format in propertyFormats)
             {
                 writer.WriteStartObject();
-                writer.WriteString(FormatPropertyName, format.Format);
-                writer.WritePropertyName(RenderingPropertyName);
+                writer.WriteString(_names.Format, format.Format);
+                writer.WritePropertyName(_names.Rendering);
                 RenderPropertyToken(format, properties, writer, _formatProvider, true, false);
                 writer.WriteEndObject();
             }
@@ -434,7 +426,7 @@ public class Utf8JsonFormatter : ITextFormatter
             }
             else
             {
-                output.WritePropertyName(NullPropertyName);
+                output.WritePropertyName(_names.Null);
             }
 
             Render(element.Value, output, format, formatProvider);
@@ -482,7 +474,7 @@ public class Utf8JsonFormatter : ITextFormatter
         switch (value)
         {
             case null:
-                output.WriteRawValue(NullPropertyName);
+                output.WriteRawValue(_names.Null);
                 return;
             case string s:
             {
@@ -512,7 +504,7 @@ public class Utf8JsonFormatter : ITextFormatter
         }
         else
         {
-            output.WriteStringValue(value.ToString() ?? NullPropertyName);
+            output.WriteStringValue(value.ToString() ?? "null");
         }
     }
 }
