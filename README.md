@@ -41,9 +41,7 @@ The `Utf8JsonFormatter` constructor accepts the following options:
 
 # Why?
 
-First of all, it was a fun mental exercise to discover how `Utf8JsonWriter` works.
-
-Secondly I had a suspicion that the recommended `ExpressionTemplate` is not as performant as a `Utf8JsonWriter`.
+The recommended `ExpressionTemplate` is not as performant as a `Utf8JsonWriter`.
 `Serilog.Extensions.Formatting.Benchmark.JsonFormatterEnrichBenchmark`
 
 | Method                | Categories            | Formatter      |          Mean |         Error |        StdDev |       Gen0 |    Allocated |
@@ -60,4 +58,4 @@ Secondly I had a suspicion that the recommended `ExpressionTemplate` is not as p
 | **IntProperties**     | **IntProperties**     | **Utf8Json**   |  **6.978 μs** | **0.1468 μs** | **0.4212 μs** | **1.5259** |  **4.77 KB** |
 | **IntProperties**     | **IntProperties**     | **Expression** | **10.997 μs** | **0.2177 μs** | **0.4687 μs** | **2.2583** |  **6.99 KB** |
 
-Thirdly, I specifically had a usecas in the project thich required logs to be in `camelCase`, and none of the built-in formatters supported that, not even `ExpressionTemplate`, since I couldn't find a way to specify a custom `JsonNamingPolicy` for properties.
+Also, I specifically had a use-case in the project which required logs to be in `camelCase`, and none of the built-in formatters supported that, not even `ExpressionTemplate`, since I couldn't find a way to specify a custom `JsonNamingPolicy` for properties.
