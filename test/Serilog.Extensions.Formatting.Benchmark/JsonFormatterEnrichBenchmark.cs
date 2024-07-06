@@ -103,7 +103,8 @@ public class JsonFormatterEnrichBenchmark
     [Benchmark(Baseline = true)]
     public void ComplexProperties()
     {
-        _jsonLog.Information(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1, s_propertyValue2);
+        _utf8JsonLog.Information(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1,
+            s_propertyValue2);
     }
 
     [BenchmarkCategory("ComplexProperties")]
