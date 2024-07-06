@@ -64,7 +64,8 @@ public class Utf8JsonFormatterTests
     public void ExpressionTemplate()
     {
         var formatter =
-            new ExpressionTemplate("{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p} }");
+            new ExpressionTemplate(
+                "{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p} }");
         var sb = new MemoryStream();
         using var writer = new StreamWriter(sb);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,

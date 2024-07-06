@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using Serilog.Context;
 using Serilog.Core;
 using Serilog.Enrichers.Sensitive;
@@ -12,8 +11,6 @@ namespace Serilog.Extensions.Formatting.Benchmark;
 
 [SimpleJob]
 [MemoryDiagnoser]
-[GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-[CategoriesColumn]
 public class JsonFormatterEnrichBenchmark
 {
     private IEnumerable<IDisposable> _contexts = null!;
@@ -64,7 +61,7 @@ public class JsonFormatterEnrichBenchmark
             .CreateLogger();
         _contexts =
         [
-            LogContext.PushProperty("HelloWorld", new JsonFormatter(), true),
+            LogContext.PushProperty("HelloWorld", _exception, true),
             LogContext.PushProperty("CurrentDate", DateOnly.FromDateTime(DateTime.Now)),
             LogContext.PushProperty("CurrentTime", TimeOnly.FromDateTime(DateTime.Now)),
             LogContext.PushProperty("CurrentDateTime", DateTime.Now),
@@ -81,25 +78,29 @@ public class JsonFormatterEnrichBenchmark
         }
     }
 
-    [BenchmarkCategory("EmitLogEvent")]
     [Benchmark]
     public void EmitLogEvent()
     {
-        _jsonLog.Information(_exception, "Hello, {Name}!", "World");
+        _jsonLog.Error(_exception, "Hello, {Name}!", "World");
+        _jsonLog.Information("Hello, {Name}!", "Alex");
+        _jsonLog.Debug("This is a debug message");
     }
 
-    [BenchmarkCategory("ComplexProperties")]
     [Benchmark]
     public void ComplexProperties()
     {
-        _jsonLog.Information(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1, s_propertyValue2);
+        _jsonLog.Error(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1,
+            s_propertyValue2);
+        _jsonLog.Information("The current time is, {Time}!", int.MaxValue);
+        _jsonLog.Debug("Hello there!");
     }
 
-    [BenchmarkCategory("IntProperties")]
     [Benchmark]
     public void IntProperties()
     {
-        _jsonLog.Information(_exception, "Hello, {A} {B} {C}!", 1, 2, 3);
+        _jsonLog.Error(_exception, "Hello, {A} {B} {C}!", 1, 2, 3);
+        _jsonLog.Information("The current time is, {Time}!", int.MaxValue);
+        _jsonLog.Debug("Hello there!");
     }
 
     public enum Formatters
