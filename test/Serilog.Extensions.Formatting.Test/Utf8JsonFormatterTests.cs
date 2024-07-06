@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using Serilog.Events;
 using Serilog.Parsing;
 using Xunit.Abstractions;
@@ -17,16 +18,37 @@ public class Utf8JsonFormatterTests
     private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1));
 
     [Fact]
-    public void DoesNotThrowError()
+    public void CamelCase()
     {
         var formatter =
-            new Utf8JsonFormatter(null, true, null, 64, true);
+            new Utf8JsonFormatter(null, true, null, 64, true, JsonNamingPolicy.CamelCase);
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
             new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
             [
-                new LogEventProperty("hello", new ScalarValue("world")),
+                new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                new LogEventProperty("Number", new ScalarValue(123)),
+            ],
+            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
+            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+        string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
+        Assert.Equal("""
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","messageTemplate":"hello world {Number}","renderedMessage":"123","traceId":"3653d3ec94d045b9850794a08a4b286f","spanId":"fcfb4c32a12a3532","properties":{"helloWorld":"world","number":123}}
+            """, message);
+    }
+
+    [Fact]
+    public void DoesNotThrowError()
+    {
+        var formatter =
+            new Utf8JsonFormatter(null, true);
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream);
+        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
+            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
+            [
+                new LogEventProperty("HelloWorld", new ScalarValue("world")),
                 new LogEventProperty("Number", new ScalarValue(123)),
             ],
             ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
@@ -52,10 +74,73 @@ public class Utf8JsonFormatterTests
     }
 
     [Fact]
+    public void KebabCaseLower()
+    {
+        var formatter =
+            new Utf8JsonFormatter(null, true, null, 64, true, JsonNamingPolicy.KebabCaseLower);
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream);
+        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
+            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
+            [
+                new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                new LogEventProperty("Number", new ScalarValue(123)),
+            ],
+            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
+            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+        string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
+        Assert.Equal("""
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","message-template":"hello world {Number}","rendered-message":"123","trace-id":"3653d3ec94d045b9850794a08a4b286f","span-id":"fcfb4c32a12a3532","properties":{"hello-world":"world","number":123}}
+            """, message);
+    }
+
+    [Fact]
+    public void SnakeCaseLower()
+    {
+        var formatter =
+            new Utf8JsonFormatter(null, true, null, 64, true, JsonNamingPolicy.SnakeCaseLower);
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream);
+        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
+            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
+            [
+                new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                new LogEventProperty("Number", new ScalarValue(123)),
+            ],
+            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
+            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+        string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
+        Assert.Equal("""
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","message_template":"hello world {Number}","rendered_message":"123","trace_id":"3653d3ec94d045b9850794a08a4b286f","span_id":"fcfb4c32a12a3532","properties":{"hello_world":"world","number":123}}
+            """, message);
+    }
+
+    [Fact]
+    public void SnakeCaseUpper()
+    {
+        var formatter =
+            new Utf8JsonFormatter(null, true, null, 64, true, JsonNamingPolicy.SnakeCaseUpper);
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream);
+        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
+            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
+            [
+                new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                new LogEventProperty("Number", new ScalarValue(123)),
+            ],
+            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
+            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+        string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
+        Assert.Equal("""
+            {"TIMESTAMP":"1970-01-01T00:00:00.0000000\u002B01:00","LEVEL":"Debug","MESSAGE_TEMPLATE":"hello world {Number}","RENDERED_MESSAGE":"123","TRACE_ID":"3653d3ec94d045b9850794a08a4b286f","SPAN_ID":"fcfb4c32a12a3532","PROPERTIES":{"HELLO_WORLD":"world","NUMBER":123}}
+            """, message);
+    }
+
+    [Fact]
     public void WithException()
     {
         var formatter =
-            new Utf8JsonFormatter(null, true, null, 64, true);
+            new Utf8JsonFormatter(null, true);
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, new AggregateException([

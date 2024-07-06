@@ -17,12 +17,13 @@ namespace Serilog.Extensions.Formatting;
 /// </remarks>
 public class Utf8JsonFormatter : ITextFormatter
 {
-    private readonly int _spanBufferSize;
     private readonly string _closingDelimiter;
     private readonly CultureInfo _formatProvider;
-    private readonly bool _renderMessage;
-    private readonly Utf8JsonWriter _writer;
     private readonly JsonLogPropertyNames _names;
+    private readonly JsonNamingPolicy _namingPolicy;
+    private readonly bool _renderMessage;
+    private readonly int _spanBufferSize;
+    private readonly Utf8JsonWriter _writer;
     private const string NoQuotingOfStrings = "l";
     private const string DateOnlyFormat = "yyyy-MM-dd";
     private const string TimeFormat = "O";
@@ -42,8 +43,8 @@ public class Utf8JsonFormatter : ITextFormatter
         bool skipValidation = true,
         JsonNamingPolicy? namingPolicy = null)
     {
-        var namingPolicy1 = namingPolicy ?? new DefaultNamingPolicy();
-        _names = new JsonLogPropertyNames(namingPolicy1);
+        _namingPolicy = namingPolicy ?? new DefaultNamingPolicy();
+        _names = new JsonLogPropertyNames(_namingPolicy);
         _renderMessage = renderMessage;
         _spanBufferSize = spanBufferSize;
         _closingDelimiter = closingDelimiter ?? Environment.NewLine;
@@ -98,7 +99,7 @@ public class Utf8JsonFormatter : ITextFormatter
             writer.WriteStartObject(_names.Properties);
             foreach (var property in logEvent.Properties)
             {
-                writer.WritePropertyName(property.Key);
+                writer.WritePropertyName(_namingPolicy.ConvertName(property.Key));
                 Visit(property.Value, writer);
             }
 
@@ -174,7 +175,7 @@ public class Utf8JsonFormatter : ITextFormatter
         {
             if (element.Key.Value?.ToString() is { } key)
             {
-                writer.WritePropertyName(key);
+                writer.WritePropertyName(_namingPolicy.ConvertName(key));
             }
             else
             {
@@ -193,7 +194,7 @@ public class Utf8JsonFormatter : ITextFormatter
         writer.WriteStartObject();
         foreach (var property in value.Properties)
         {
-            writer.WritePropertyName(property.Name);
+            writer.WritePropertyName(_namingPolicy.ConvertName(property.Name));
             Visit(property.Value, writer);
         }
 
@@ -422,7 +423,7 @@ public class Utf8JsonFormatter : ITextFormatter
         {
             if (element.Key.Value?.ToString() is { } key)
             {
-                output.WritePropertyName(key);
+                output.WritePropertyName(_namingPolicy.ConvertName(key));
             }
             else
             {
@@ -440,14 +441,14 @@ public class Utf8JsonFormatter : ITextFormatter
         ArgumentNullException.ThrowIfNull(value);
         if (value.TypeTag is not null)
         {
-            output.WriteRawValue(value.TypeTag);
+            output.WriteRawValue(_namingPolicy.ConvertName(value.TypeTag));
             output.WriteRawValue([' ']);
         }
 
         output.WriteStartObject();
         foreach (var property in value.Properties)
         {
-            output.WriteRawValue(property.Name);
+            output.WriteRawValue(_namingPolicy.ConvertName(property.Name));
             Render(property.Value, output, format, formatProvider);
         }
     }
