@@ -47,7 +47,7 @@ public class Utf8JsonFormatterTests
             ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","messageTemplate":"hello world","traceId":"3653d3ec94d045b9850794a08a4b286f","spanId":"fcfb4c32a12a3532","properties":{"hello":"world"}}
+            {"Timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","Level":"Debug","MessageTemplate":"hello world","TraceId":"3653d3ec94d045b9850794a08a4b286f","SpanId":"fcfb4c32a12a3532","Properties":{"hello":"world"}}
             """, Encoding.UTF8.GetString(stream.ToArray().AsSpan()));
     }
 

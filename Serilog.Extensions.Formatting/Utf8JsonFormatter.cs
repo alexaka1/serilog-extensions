@@ -17,13 +17,27 @@ namespace Serilog.Extensions.Formatting;
 /// </remarks>
 public class Utf8JsonFormatter : ITextFormatter
 {
-    private readonly int _bufferSize;
+    private readonly int _spanBufferSize;
     private readonly string _closingDelimiter;
     private readonly CultureInfo _formatProvider;
-    private readonly IFormatProvider? _formatProvider1;
     private readonly bool _renderMessage;
     private readonly Utf8JsonWriter _writer;
+    private const string TimestampPropertyName = "Timestamp";
+    private const string LevelPropertyName = "Level";
+    private const string MessageTemplatePropertyName = "MessageTemplate";
+    private const string RenderedMessagePropertyName = "RenderedMessage";
+    private const string TraceIdPropertyName = "TraceId";
+    private const string SpanIdPropertyName = "SpanId";
+    private const string ExceptionPropertyName = "Exception";
+    private const string PropertiesPropertyName = "Properties";
+    private const string RenderingsPropertyName = "Renderings";
+    private const string NullPropertyName = "null";
+    private const string TypeTagPropertyName = "_typeTag";
+    private const string FormatPropertyName = "Format";
+    private const string RenderingPropertyName = "Rendering";
     private const string NoQuotingOfStrings = "l";
+    private const string DateOnlyFormat = "yyyy-MM-dd";
+    private const string TimeFormat = "O";
 
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
@@ -36,12 +50,11 @@ public class Utf8JsonFormatter : ITextFormatter
     public Utf8JsonFormatter(string? closingDelimiter = null,
         bool renderMessage = false,
         IFormatProvider? formatProvider = null,
-        int bufferSize = 64,
-        bool skipValidation = false)
+        int spanBufferSize = 64,
+        bool skipValidation = true)
     {
         _renderMessage = renderMessage;
-        _formatProvider1 = formatProvider;
-        _bufferSize = bufferSize;
+        _spanBufferSize = spanBufferSize;
         _closingDelimiter = closingDelimiter ?? Environment.NewLine;
         _formatProvider = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
         _writer = new Utf8JsonWriter(Stream.Null, new JsonWriterOptions { SkipValidation = skipValidation });
@@ -65,35 +78,35 @@ public class Utf8JsonFormatter : ITextFormatter
 
         var writer = GetWriter(str);
         writer.WriteStartObject();
-        writer.WriteString("timestamp"u8, logEvent.Timestamp.ToString("O", _formatProvider1));
-        writer.WriteString("level"u8, Enum.GetName(logEvent.Level));
-        writer.WriteString("messageTemplate"u8, logEvent.MessageTemplate.Text);
+        writer.WriteString(TimestampPropertyName, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
+        writer.WriteString(LevelPropertyName, Enum.GetName(logEvent.Level));
+        writer.WriteString(MessageTemplatePropertyName, logEvent.MessageTemplate.Text);
         if (_renderMessage)
         {
-            writer.WriteString("renderedMessage"u8, logEvent.MessageTemplate.Render(logEvent.Properties));
+            writer.WriteString(RenderedMessagePropertyName, logEvent.MessageTemplate.Render(logEvent.Properties));
         }
 
         if (logEvent.TraceId != null)
         {
-            writer.WriteString("traceId"u8, logEvent.TraceId.ToString());
+            writer.WriteString(TraceIdPropertyName, logEvent.TraceId.Value.ToString());
         }
 
         if (logEvent.SpanId != null)
         {
-            writer.WriteString("spanId"u8, logEvent.SpanId.ToString());
+            writer.WriteString(SpanIdPropertyName, logEvent.SpanId.Value.ToString());
         }
 
         if (logEvent.Exception != null)
         {
-            writer.WriteString("exception"u8, logEvent.Exception.ToString());
+            writer.WriteString(ExceptionPropertyName, logEvent.Exception.ToString());
         }
 
         if (logEvent.Properties.Count != 0)
         {
-            writer.WriteStartObject("properties"u8);
+            writer.WriteStartObject(PropertiesPropertyName);
             foreach (var property in logEvent.Properties)
             {
-                writer.WritePropertyName([char.ToLowerInvariant(property.Key[0]), ..property.Key[1..]]);
+                writer.WritePropertyName(property.Key);
                 Visit(property.Value, writer);
             }
 
@@ -109,7 +122,7 @@ public class Utf8JsonFormatter : ITextFormatter
         //
         // if (tokensWithFormat.Length != 0)
         // {
-        //     writer.WriteStartObject("renderings"u8);
+        //     writer.WriteStartObject(RenderingsPropertyName);
         //     WriteRenderingsValues(tokensWithFormat, logEvent.Properties, writer);
         //     writer.WriteEndObject();
         // }
@@ -169,11 +182,11 @@ public class Utf8JsonFormatter : ITextFormatter
         {
             if (element.Key.Value?.ToString() is { } key)
             {
-                writer.WritePropertyName([char.ToLower(key[0], _formatProvider), ..key[1..]]);
+                writer.WritePropertyName(key);
             }
             else
             {
-                writer.WritePropertyName("null"u8);
+                writer.WritePropertyName(NullPropertyName);
             }
 
             Visit(element.Value, writer);
@@ -188,13 +201,13 @@ public class Utf8JsonFormatter : ITextFormatter
         writer.WriteStartObject();
         foreach (var property in value.Properties)
         {
-            writer.WritePropertyName([char.ToLower(property.Name[0], _formatProvider), ..property.Name[1..]]);
+            writer.WritePropertyName(property.Name);
             Visit(property.Value, writer);
         }
 
         if (value.TypeTag is not null)
         {
-            writer.WriteString("_typeTag"u8, value.TypeTag);
+            writer.WriteString(TypeTagPropertyName, value.TypeTag);
         }
 
         writer.WriteEndObject();
@@ -224,70 +237,105 @@ public class Utf8JsonFormatter : ITextFormatter
                 writer.WriteStringValue(str);
                 break;
             case ValueType vt:
-                switch (vt)
+                if (vt is int i)
                 {
-                    case bool b:
-                        writer.WriteBooleanValue(b);
-                        break;
-                    case DateTime dt:
-                        writer.WriteStringValue(dt);
-                        break;
-                    case DateTimeOffset dto:
-                        writer.WriteStringValue(dto);
-                        break;
-                    case char c:
-                    {
-                        writer.WriteStringValue([c]);
-                        break;
-                    }
-                    case TimeSpan c:
-                    {
-                        Span<char> buffer = stackalloc char[_bufferSize];
-                        if (c.TryFormat(buffer, out int written, formatProvider: _formatProvider,
-                                format: default))
-                        {
-                            writer.WriteStringValue(buffer[..written]);
-                        }
+                    writer.WriteNumberValue(i);
+                }
+                else if (vt is uint ui)
+                {
+                    writer.WriteNumberValue(ui);
+                }
+                else if (vt is long l)
+                {
+                    writer.WriteNumberValue(l);
+                }
+                else if (vt is ulong ul)
+                {
+                    writer.WriteNumberValue(ul);
+                }
+                else if (vt is decimal dc)
+                {
+                    writer.WriteNumberValue(dc);
+                }
+                else if (vt is byte bt)
+                {
+                    writer.WriteNumberValue(bt);
+                }
+                else if (vt is sbyte sb)
+                {
+                    writer.WriteNumberValue(sb);
+                }
+                else if (vt is short s)
+                {
+                    writer.WriteNumberValue(s);
+                }
+                else if (vt is ushort us)
+                {
+                    writer.WriteNumberValue(us);
+                }
+                else if (vt is double d)
+                {
+                    writer.WriteNumberValue(d);
+                }
+                else if (vt is float f)
+                {
+                    writer.WriteNumberValue(f);
+                }
+                else if (vt is bool b)
+                {
+                    writer.WriteBooleanValue(b);
+                }
+                else if (vt is char c1)
+                {
+                    writer.WriteStringValue([c1]);
+                }
+                else if (vt is DateTime dt)
+                {
+                    writer.WriteStringValue(dt);
+                }
+                else if (vt is DateTimeOffset dto)
+                {
+                    writer.WriteStringValue(dto);
+                }
 
-                        break;
-                    }
-                    case DateOnly c:
+                else if (vt is TimeSpan timeSpan)
+                {
+                    Span<char> buffer = stackalloc char[_spanBufferSize];
+                    if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
+                            format: default))
                     {
-                        Span<char> buffer = stackalloc char[_bufferSize];
-                        if (c.TryFormat(buffer, out int written, provider: _formatProvider,
-                                format: "yyyy-MM-dd"))
-                        {
-                            writer.WriteStringValue(buffer[..written]);
-                        }
-
-                        break;
+                        writer.WriteStringValue(buffer[..written]);
                     }
-                    case TimeOnly c:
+                }
+                else if (vt is DateOnly dateOnly)
+                {
+                    Span<char> buffer = stackalloc char[_spanBufferSize];
+                    if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
+                            format: DateOnlyFormat))
                     {
-                        Span<char> buffer = stackalloc char[_bufferSize];
-                        if (c.TryFormat(buffer, out int written, provider: _formatProvider,
-                                format: "O"))
-                        {
-                            writer.WriteStringValue(buffer[..written]);
-                        }
-
-                        break;
+                        writer.WriteStringValue(buffer[..written]);
                     }
-                    case not null when vt.GetType().IsEnum:
+                }
+                else if (vt is TimeOnly timeOnly)
+                {
+                    Span<char> buffer = stackalloc char[_spanBufferSize];
+                    if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
+                            format: TimeFormat))
                     {
-                        writer.WriteStringValue(vt.ToString());
-                        break;
+                        writer.WriteStringValue(buffer[..written]);
                     }
-                    case ISpanFormattable span:
+                }
+                else if (vt.GetType().IsEnum)
+                {
+                    writer.WriteStringValue(vt.ToString());
+                }
+                else if (vt is ISpanFormattable span)
+                {
+                    Span<char> buffer = stackalloc char[_spanBufferSize];
+                    if (span.TryFormat(buffer, out int written, provider: _formatProvider,
+                            format: default))
                     {
-                        Span<char> buffer = stackalloc char[_bufferSize];
-                        if (span.TryFormat(buffer, out int written, provider: _formatProvider,
-                                format: default))
-                        {
-                            writer.WriteRawValue(buffer[..written]);
-                        }
-
-                        break;
+                        writer.WriteRawValue(buffer[..written]);
                     }
                 }
 
@@ -307,8 +355,8 @@ public class Utf8JsonFormatter : ITextFormatter
             foreach (var format in propertyFormats)
             {
                 writer.WriteStartObject();
-                writer.WriteString("format"u8, format.Format);
-                writer.WritePropertyName("rendering"u8);
+                writer.WriteString(FormatPropertyName, format.Format);
+                writer.WritePropertyName(RenderingPropertyName);
                 RenderPropertyToken(format, properties, writer, _formatProvider, true, false);
                 writer.WriteEndObject();
             }
@@ -382,11 +430,11 @@ public class Utf8JsonFormatter : ITextFormatter
         {
             if (element.Key.Value?.ToString() is { } key)
             {
-                output.WritePropertyName([char.ToLower(key[0], _formatProvider), ..key[1..]]);
+                output.WritePropertyName(key);
             }
             else
             {
-                output.WritePropertyName("null"u8);
+                output.WritePropertyName(NullPropertyName);
             }
 
             Render(element.Value, output, format, formatProvider);
@@ -407,7 +455,7 @@ public class Utf8JsonFormatter : ITextFormatter
         output.WriteStartObject();
         foreach (var property in value.Properties)
         {
-            output.WriteRawValue([char.ToLower(property.Name[0], _formatProvider), ..property.Name[1..]]);
+            output.WriteRawValue(property.Name);
             Render(property.Value, output, format, formatProvider);
         }
     }
@@ -434,7 +482,7 @@ public class Utf8JsonFormatter : ITextFormatter
         switch (value)
         {
             case null:
-                output.WriteRawValue("null"u8);
+                output.WriteRawValue(NullPropertyName);
                 return;
             case string s:
             {
@@ -464,7 +512,7 @@ public class Utf8JsonFormatter : ITextFormatter
         }
         else
         {
-            output.WriteStringValue(value.ToString() ?? "null");
+            output.WriteStringValue(value.ToString() ?? NullPropertyName);
         }
     }
 }
