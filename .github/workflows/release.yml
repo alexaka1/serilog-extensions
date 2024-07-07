@@ -5,10 +5,7 @@ on:
       - main
       - feature/changesets
 concurrency: ${{ github.workflow }}-${{ github.ref }}
-permissions:
-  pull-requests: write
-  contents: write
-
+permissions: { }
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -18,6 +15,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+      contents: write
+      issues: read
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
