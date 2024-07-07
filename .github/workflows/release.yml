@@ -11,6 +11,8 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_VERSION: 8.0.x
   NODE_VERSION: 20.x
+  SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON: src/Serilog.Expressions.Formatting/package.json
+  SERILOG_EXPRESSIONS_FORMATTING_CSPROJ: src/Serilog.Expressions.Formatting/Serilog.Expressions.Formatting.csproj
 jobs:
   release:
     name: Release
@@ -58,12 +60,22 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          version: yarn run version
+          version: |
+            set -e
+            yarn run version
+            VERSION=$(jq -r '.version' "${{ env.SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON }}")
+            sed -i "s#<VersionPrefix>.*</VersionPrefix>#<VersionPrefix>$VERSION</VersionPrefix>#" "${{ env.SERILOG_EXPRESSIONS_FORMATTING_CSPROJ }}"
+            AVAILABLE_VERSIONS=$(curl -s "https://api.nuget.org/v3-flatcontainer/alexaka1.serilog.expressions.formatting/index.json" | jq -r '.versions[]')
+            if echo "$AVAILABLE_VERSIONS" | grep -q "^$CURRENT_VERSION$"; then
+              echo "versionExists=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "versionExists=false" >> "$GITHUB_OUTPUT"
+            fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists == 'false'
         # You can do something when a publish should happen.
         run: |
           echo "Publishing to nuget"
