@@ -1,6 +1,10 @@
 {
   "name": "serilog-extensions",
   "private": true,
+  "scripts": {
+    "changeset": "changeset",
+    "version": "changeset version"
+  },
   "workspaces": [
     "src/*"
   ],
