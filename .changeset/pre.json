@@ -4,5 +4,7 @@
   "initialVersions": {
     "alexaka1.serilog.extensions.formatting": "0.0.3"
   },
-  "changesets": []
+  "changesets": [
+    "twenty-ligers-attend"
+  ]
 }
