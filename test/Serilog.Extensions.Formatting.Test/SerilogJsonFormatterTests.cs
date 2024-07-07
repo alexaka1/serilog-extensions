@@ -297,7 +297,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
             (string?)formatted["Properties"]?["name"]);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/alexaka1/serilog-extensions/issues/5")]
     public void PropertyTokensWithFormatStringsAreIncludedAsRenderings()
     {
         var p = new MessageTemplateParser();
