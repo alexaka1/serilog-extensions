@@ -57,16 +57,15 @@ jobs:
         run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
       - uses: dorny/test-reporter@v1
         with:
-          artifact: ${{ env.test-name }}
-          name: Dotnet tests
+          name: ${{ env.test-name }}
           path: TestResults/*.trx
           reporter: dotnet-trx
-      - name: Upload dotnet test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.test-name }}
-          path: TestResults
-        if: ${{ always() }}
+#      - name: Upload dotnet test results
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ env.test-name }}
+#          path: TestResults
+#        if: ${{ always() }}
   check-release:
     name: Check release version
     runs-on: ubuntu-24.04
