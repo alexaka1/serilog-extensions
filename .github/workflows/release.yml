@@ -69,14 +69,14 @@ jobs:
         if: ${{ always() }}
   check-release:
     if: github.event_name == 'push'
-    name: Check release version
+    name: Prepare release
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
       contents: write
       issues: read
     outputs:
-      publishable: ${{ steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true' }}
+      publishable: ${{ steps.pack.outputs.canPack == 'true'}}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
@@ -103,25 +103,32 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          # outputs versionExists=true if version already exists on nuget
           version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }} ${{ env.PackageName }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Can pack?
+        id: pack
+        if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
+        run: echo "canPack=true" >> "$GITHUB_OUTPUT"
       - name: Dotnet restore
+        if: steps.pack.outputs.canPack == 'true'
         run: dotnet restore ${{ env.Project }} --locked-mode
       - name: Dotnet build
+        if: steps.pack.outputs.canPack == 'true'
         run: dotnet build ${{ env.Project }} --configuration Release --no-restore
       - name: Pack nuget
-        if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
+        if: steps.pack.outputs.canPack == 'true'
         run: dotnet pack ${{ env.Project }} -c Release -o ${{ github.workspace }}/artifacts
       - name: Upload nuget
+        if: steps.pack.outputs.canPack == 'true'
         uses: actions/upload-artifact@v4
-        if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
         with:
           name: nuget
           path: ${{ github.workspace }}/artifacts
           if-no-files-found: error
   release:
-    name: Release
+    name: Release nuget
     runs-on: ubuntu-latest
     if: needs.check-release.outputs.publishable == 'true'
     needs:
