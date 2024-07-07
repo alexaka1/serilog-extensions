@@ -30,7 +30,7 @@ jobs:
         dotnet:
           - 8.0.x
     env:
-      test-name: dotnet-${{ matrix.dotnet }}-results-${{ matrix.os }}
+      test-name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -46,7 +46,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Dotnet ${{ matrix.dotnet }}
-        uses: actions/setup-dotnet@v3
+        id: dotnet-setup
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Dotnet restore
@@ -86,7 +87,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Setup Dotnet ${{ env.dotnet }}
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.dotnet }}
       - name: Setup Node.js ${{ env.node }}
@@ -97,10 +98,6 @@ jobs:
         run: corepack enable
       - name: Yarn install
         run: yarn install --immutable
-      - name: Dotnet restore
-        run: dotnet restore ${{ env.Project }} --locked-mode
-      - name: Dotnet build
-        run: dotnet build ${{ env.Project }} --configuration Release --no-restore
       - name: Create Release Pull Request or Allow Pack
         id: changesets
         uses: changesets/action@v1
@@ -108,15 +105,20 @@ jobs:
           version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }} ${{ env.PackageName }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Dotnet restore
+        run: dotnet restore ${{ env.Project }} --locked-mode
+      - name: Dotnet build
+        run: dotnet build ${{ env.Project }} --configuration Release --no-restore
       - name: Pack nuget
         if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
-        run: dotnet pack ${{ env.Project }} -c Release -o ${{ runner.temp }}/nuget
+        run: dotnet pack ${{ env.Project }} -c Release -o ${{ github.workspace }}/artifacts
       - name: Upload nuget
         uses: actions/upload-artifact@v4
         if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
         with:
           name: nuget
-          path: ${{ runner.temp }}/nuget
+          path: ${{ github.workspace }}/artifacts
+          if-no-files-found: error
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -133,13 +135,14 @@ jobs:
           egress-policy: audit
           disable-telemetry: true
       - name: Download nuget
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nuget
-          path: artifacts
+          path: ${{ github.workspace }}/artifacts
+          github-token: ${{ github.token }}
       - name: Setup Dotnet ${{ env.dotnet }}
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.dotnet }}
       - name: Publish Nuget
-        run: dotnet nuget push ./artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push ${{ github.workspace }}/artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
