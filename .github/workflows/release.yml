@@ -29,8 +29,6 @@ jobs:
           - macos-latest
         dotnet:
           - 8.0.x
-    env:
-      test-name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -58,7 +56,7 @@ jobs:
         run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
       - uses: dorny/test-reporter@v1
         with:
-          name: ${{ env.test-name }}
+          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
           path: TestResults/*.trx
           reporter: dotnet-trx
 #      - name: Upload dotnet test results
