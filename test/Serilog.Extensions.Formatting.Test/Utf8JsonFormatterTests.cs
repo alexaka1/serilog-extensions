@@ -16,7 +16,7 @@ public class Utf8JsonFormatterTests
     }
 
     private readonly ITestOutputHelper _output;
-    private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1));
+    private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
 
     [Fact]
     public void CamelCase()
@@ -35,7 +35,7 @@ public class Utf8JsonFormatterTests
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
         Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","messageTemplate":"hello world {Number}","renderedMessage":"123","traceId":"3653d3ec94d045b9850794a08a4b286f","spanId":"fcfb4c32a12a3532","properties":{"helloWorld":"world","number":123}}
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","messageTemplate":"hello world {Number}","renderedMessage":"123","traceId":"3653d3ec94d045b9850794a08a4b286f","spanId":"fcfb4c32a12a3532","properties":{"helloWorld":"world","number":123}}
             """, message);
     }
 
@@ -94,7 +94,7 @@ public class Utf8JsonFormatterTests
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         writer.Flush();
         Assert.Equal("""
-            {"Timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","Level":"Debug","MessageTemplate":"hello world","TraceId":"3653d3ec94d045b9850794a08a4b286f","SpanId":"fcfb4c32a12a3532","Properties":{"hello":"world"}}
+            {"Timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","Level":"Debug","MessageTemplate":"hello world","TraceId":"3653d3ec94d045b9850794a08a4b286f","SpanId":"fcfb4c32a12a3532","Properties":{"hello":"world"}}
             """, Encoding.UTF8.GetString(stream.ToArray().AsSpan()));
     }
 
@@ -116,7 +116,7 @@ public class Utf8JsonFormatterTests
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
         Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","message-template":"hello world {Number}","rendered-message":"123","trace-id":"3653d3ec94d045b9850794a08a4b286f","span-id":"fcfb4c32a12a3532","properties":{"hello-world":"world","number":123}}
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","message-template":"hello world {Number}","rendered-message":"123","trace-id":"3653d3ec94d045b9850794a08a4b286f","span-id":"fcfb4c32a12a3532","properties":{"hello-world":"world","number":123}}
             """, message);
     }
 
@@ -138,7 +138,7 @@ public class Utf8JsonFormatterTests
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
         Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B01:00","level":"Debug","message_template":"hello world {Number}","rendered_message":"123","trace_id":"3653d3ec94d045b9850794a08a4b286f","span_id":"fcfb4c32a12a3532","properties":{"hello_world":"world","number":123}}
+            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","message_template":"hello world {Number}","rendered_message":"123","trace_id":"3653d3ec94d045b9850794a08a4b286f","span_id":"fcfb4c32a12a3532","properties":{"hello_world":"world","number":123}}
             """, message);
     }
 
@@ -160,7 +160,7 @@ public class Utf8JsonFormatterTests
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
         Assert.Equal("""
-            {"TIMESTAMP":"1970-01-01T00:00:00.0000000\u002B01:00","LEVEL":"Debug","MESSAGE_TEMPLATE":"hello world {Number}","RENDERED_MESSAGE":"123","TRACE_ID":"3653d3ec94d045b9850794a08a4b286f","SPAN_ID":"fcfb4c32a12a3532","PROPERTIES":{"HELLO_WORLD":"world","NUMBER":123}}
+            {"TIMESTAMP":"1970-01-01T00:00:00.0000000\u002B00:00","LEVEL":"Debug","MESSAGE_TEMPLATE":"hello world {Number}","RENDERED_MESSAGE":"123","TRACE_ID":"3653d3ec94d045b9850794a08a4b286f","SPAN_ID":"fcfb4c32a12a3532","PROPERTIES":{"HELLO_WORLD":"world","NUMBER":123}}
             """, message);
     }
 
