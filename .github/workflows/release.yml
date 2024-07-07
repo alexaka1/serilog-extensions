@@ -42,13 +42,13 @@ jobs:
         run: dotnet build **./*.csproj --configuration Release --no-restore
       - name: Test with dotnet
         run: dotnet test --configuration Release --no-restore --logger trx --results-directory "TestResults"
-          - name: Upload dotnet test results
-            uses: actions/upload-artifact@v4
-            with:
-              name: dotnet-results
-              path: TestResults
-            # Use always() to always run this step to publish test results when there are test failures
-            if: ${{ always() }}
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-results
+          path: TestResults
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
