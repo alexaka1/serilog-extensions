@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version"
+    "version": "./build/version.sh"
   },
   "workspaces": [
     "src/*"

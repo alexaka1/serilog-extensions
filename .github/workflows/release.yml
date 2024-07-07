@@ -64,7 +64,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          version: ./build/version.sh ${{ env.SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON }} ${{ env.SERILOG_EXPRESSIONS_FORMATTING_CSPROJ }} "alexaka1.serilog.extensions.formatting"
+          version: yarn run version ${{ env.SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON }} ${{ env.SERILOG_EXPRESSIONS_FORMATTING_CSPROJ }} "alexaka1.serilog.extensions.formatting"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
