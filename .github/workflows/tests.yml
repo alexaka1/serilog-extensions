@@ -47,6 +47,6 @@ jobs:
       - name: Upload dotnet test results artifacts
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
         with:
-          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ runner.os }}
+          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
           path: TestResults
         if: ${{ always() }}
