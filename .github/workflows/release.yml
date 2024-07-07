@@ -28,7 +28,7 @@ jobs:
           - windows-latest
           - macos-latest
         dotnet:
-          - ${{ env.dotnet }}
+          - 8.0.x
     env:
       test-name: dotnet-${{ matrix.dotnet }}-results-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
