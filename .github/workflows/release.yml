@@ -15,8 +15,8 @@ env:
   dotnet: 8.0.x
   node: 20.x
   Project: src/Serilog.Extensions.Formatting
-  PackageJson: ${{ env.Project }}/package.json
-  Csproj: ${{ env.Project }}/Serilog.Extensions.Formatting.csproj
+  PackageJson: src/Serilog.Extensions.Formatting/package.json
+  Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
 jobs:
   test:
