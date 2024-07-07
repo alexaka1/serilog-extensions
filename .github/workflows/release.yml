@@ -37,9 +37,9 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Dotnet restore
-        run: dotnet restore **./*.csproj --locked-mode
+        run: dotnet restore --locked-mode
       - name: Dotnet build
-        run: dotnet build **./*.csproj --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
       - name: Test with dotnet
         run: dotnet test --configuration Release --no-restore --logger trx --results-directory "TestResults"
       - name: Upload dotnet test results
