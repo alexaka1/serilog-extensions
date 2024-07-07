@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-PACKAGE_JSON_PATH=$1
-CSPROJ_PATH=$2
-PACKAGE_NAME=$2
+PACKAGE_JSON_PATH="$1"
+CSPROJ_PATH="$2"
+PACKAGE_NAME="$3"
 
-set -e
+set -xe
 yarn run version
 VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
 sed -i "s#<VersionPrefix>.*</VersionPrefix>#<VersionPrefix>$VERSION</VersionPrefix>#" "$CSPROJ_PATH"
