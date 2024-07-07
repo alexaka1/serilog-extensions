@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "alexaka1.serilog.extensions.formatting": "0.0.3"
+  },
+  "changesets": []
+}
