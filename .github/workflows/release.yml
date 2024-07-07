@@ -11,8 +11,8 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_VERSION: 8.0.x
   NODE_VERSION: 20.x
-  SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON: src/Serilog.Expressions.Formatting/package.json
-  SERILOG_EXPRESSIONS_FORMATTING_CSPROJ: src/Serilog.Expressions.Formatting/Serilog.Expressions.Formatting.csproj
+  SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON: ./src/Serilog.Expressions.Formatting/package.json
+  SERILOG_EXPRESSIONS_FORMATTING_CSPROJ: ./src/Serilog.Expressions.Formatting/Serilog.Expressions.Formatting.csproj
 jobs:
   release:
     name: Release
