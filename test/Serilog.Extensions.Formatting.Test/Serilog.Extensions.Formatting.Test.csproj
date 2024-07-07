@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj"/>
+    <ProjectReference Include="..\..\src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj"/>
   </ItemGroup>
 
 </Project>

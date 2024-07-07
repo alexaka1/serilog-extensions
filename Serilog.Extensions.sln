@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.Formatting", "Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj", "{DE68E991-F6A3-46A9-87D3-34F6640117FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.Formatting", "src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj", "{DE68E991-F6A3-46A9-87D3-34F6640117FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.Formatting.Test", "test\Serilog.Extensions.Formatting.Test\Serilog.Extensions.Formatting.Test.csproj", "{B1E681B8-549F-4DA8-9E62-2371F3127EBD}"
 EndProject
