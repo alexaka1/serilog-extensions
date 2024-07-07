@@ -11,8 +11,9 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_VERSION: 8.0.x
   NODE_VERSION: 20.x
-  SERILOG_EXTENSIONS_FORMATTING_PACKAGE_JSON: src/Serilog.Extensions.Formatting/package.json
-  SERILOG_EXTENSIONS_FORMATTING_CSPROJ: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
+  PackageJson: src/Serilog.Extensions.Formatting/package.json
+  Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
+  PackageName: alexaka1.serilog.extensions.formatting
 jobs:
   release:
     name: Release
@@ -64,7 +65,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          version: yarn run version ${{ env.SERILOG_EXTENSIONS_FORMATTING_PACKAGE_JSON }} ${{ env.SERILOG_EXTENSIONS_FORMATTING_CSPROJ }} "alexaka1.serilog.extensions.formatting"
+          version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }} ${{ env.PackageName }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
