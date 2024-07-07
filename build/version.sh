@@ -5,7 +5,7 @@ CSPROJ_PATH="$2"
 PACKAGE_NAME="$3"
 
 set -xe
-yarn run version
+yarn run changeset:version
 VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
 sed -i "s#<VersionPrefix>.*</VersionPrefix>#<VersionPrefix>$VERSION</VersionPrefix>#" "$CSPROJ_PATH"
 AVAILABLE_VERSIONS=$(curl -s "https://api.nuget.org/v3-flatcontainer/$PACKAGE_NAME/index.json" | jq -r '.versions[]')
