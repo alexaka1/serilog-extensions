@@ -1,73 +1,142 @@
-name: release.yml
+name: CI
 on:
   push:
     branches:
       - main
       - feature/changesets
+  pull_request:
+    branches:
+      - main
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  DOTNET_VERSION: 8.0.x
-  NODE_VERSION: 20.x
-  PackageJson: src/Serilog.Extensions.Formatting/package.json
-  Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
+  dotnet: 8.0.x
+  node: 20.x
+  Project: src/Serilog.Extensions.Formatting
+  PackageJson: ${{ env.Project }}/package.json
+  Csproj: ${{ env.Project }}/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-24.04
+  test:
+    name: Tests
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        dotnet: [ ${ { env.dotnet } } ]
+    env:
+      test-name: dotnet-${{ matrix.dotnet }}-results-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     permissions:
-      pull-requests: write
-      contents: write
-      issues: read
+      contents: read
+      checks: write
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
           egress-policy: audit
           disable-telemetry: true
-      - name: "Checkout code"
+      - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           persist-credentials: false
-      - name: Setup dotnet 8
+      - name: Setup Dotnet ${{ matrix.dotnet }}
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Corepack
-        run: corepack enable
-      - name: Install Dependencies
-        run: yarn install --immutable
+          dotnet-version: ${{ matrix.dotnet }}
       - name: Dotnet restore
         run: dotnet restore --locked-mode
       - name: Dotnet build
         run: dotnet build --configuration Release --no-restore
       - name: Test with dotnet
-        run: dotnet test --configuration Release --no-restore --logger trx --results-directory "TestResults"
+        run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: ${{ env.test-name }}
+          name: Dotnet tests
+          path: TestResults/*.trx
+          reporter: dotnet-trx
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-results
+          name: ${{ env.test-name }}
           path: TestResults
-        # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
-      - name: Create Release Pull Request or Publish
+  check-release:
+    name: Check release version
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+      contents: write
+      issues: read
+    outputs:
+      publishable: ${{ steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true' }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
+        with:
+          egress-policy: audit
+          disable-telemetry: true
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
+      - name: Setup Dotnet ${{ env.dotnet }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.dotnet }}
+      - name: Setup Node.js ${{ env.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.node }}
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Yarn install
+        run: yarn install --immutable
+      - name: Dotnet restore
+        run: dotnet restore ${{ env.Project }} --locked-mode
+      - name: Dotnet build
+        run: dotnet build ${{ env.Project }} --configuration Release --no-restore
+      - name: Create Release Pull Request or Allow Pack
         id: changesets
         uses: changesets/action@v1
         with:
           version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }} ${{ env.PackageName }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish
+      - name: Pack nuget
         if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
-        # You can do something when a publish should happen.
-        run: |
-          echo "Publishing to nuget"
-          dotnet pack src/Serilog.Extensions.Formatting -c Release --version-suffix beta -o ./artifacts
+        run: dotnet pack ${{ env.Project }} -c Release -o ${{ runner.temp }}/nuget
+      - name: Upload nuget
+        uses: actions/upload-artifact@v4
+        if: steps.changesets.outputs.hasChangesets == 'false' && steps.changesets.outputs.versionExists != 'true'
+        with:
+          name: nuget
+          path: ${{ runner.temp }}/nuget
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: needs.check-release.outputs.publishable == 'true'
+    needs:
+      - check-release
+      - test
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
+        with:
+          egress-policy: audit
+          disable-telemetry: true
+      - name: Download nuget
+        uses: actions/download-artifact@v3
+        with:
+          name: nuget
+          path: artifacts
+      - name: Setup Dotnet ${{ env.dotnet }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.dotnet }}
+      - name: Publish Nuget
+        run: dotnet nuget push ./artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
