@@ -1,4 +1,5 @@
 # Alexaka1.Serilog.Extensions.Formatting
+
 [![NuGet Version](https://img.shields.io/nuget/v/Alexaka1.Serilog.Extensions.Formatting)](https://www.nuget.org/packages/Alexaka1.Serilog.Extensions.Formatting)
 
 ## Utf8JsonFormatter

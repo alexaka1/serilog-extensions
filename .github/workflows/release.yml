@@ -1,9 +1,6 @@
-name: CI
+name: Release
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -18,56 +15,7 @@ env:
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
 jobs:
-  test:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    name: Tests
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
-        dotnet:
-          - 8.0.x
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: read
-      checks: write
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
-        with:
-          egress-policy: audit
-          disable-telemetry: true
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-        with:
-          persist-credentials: false
-      - name: Setup Dotnet ${{ matrix.dotnet }}
-        id: dotnet-setup
-        uses: actions/setup-dotnet@4d6c8fcf3c8f7a60068d26b594648e99df24cee3 # v4.0.0
-        with:
-          dotnet-version: ${{ matrix.dotnet }}
-      - name: Dotnet restore
-        run: dotnet restore --locked-mode
-      - name: Dotnet build
-        run: dotnet build --configuration Release --no-restore
-      - name: Test with dotnet
-        run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
-      - uses: dorny/test-reporter@9098107e2aa7ed7d1150f776ddea55f55c80016b # v1
-        name: Upload dotnet test results summary
-        with:
-          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
-          path: TestResults/*.trx
-          reporter: dotnet-trx
-      - name: Upload dotnet test results artifacts
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
-        with:
-          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
-          path: TestResults
-        if: ${{ always() }}
   check-release:
-    if: github.event_name == 'push'
     name: Prepare release
     runs-on: ubuntu-24.04
     permissions:

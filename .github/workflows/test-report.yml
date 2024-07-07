@@ -1,0 +1,22 @@
+name: 'Test Report'
+on:
+  workflow_run:
+    workflows: [ 'CI' ]
+    types:
+      - completed
+permissions: { }
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    steps:
+      - uses: dorny/test-reporter@9098107e2aa7ed7d1150f776ddea55f55c80016b # v1
+        name: Upload dotnet test results summary
+        with:
+          artifact: dotnet-(.*)-tests-on-(.*)
+          name: 'dotnet-$1-tests-on-$2'
+          path: '*.trx'
+          reporter: dotnet-trx
