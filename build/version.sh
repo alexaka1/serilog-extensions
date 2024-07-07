@@ -6,6 +6,7 @@ PACKAGE_NAME="$3"
 
 set -xe
 pwd
+ls -la
 yarn run changeset:version
 VERSION=$(jq -r '.version' "$PACKAGE_JSON_PATH")
 sed -i "s#<VersionPrefix>.*</VersionPrefix>#<VersionPrefix>$VERSION</VersionPrefix>#" "$CSPROJ_PATH"
