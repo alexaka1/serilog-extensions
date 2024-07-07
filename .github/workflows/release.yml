@@ -10,8 +10,8 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
   dotnet: 8.0.x
   node: 20.x
   Project: src/Serilog.Extensions.Formatting
