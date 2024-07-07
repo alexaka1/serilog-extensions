@@ -23,8 +23,12 @@ jobs:
     name: Tests
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        dotnet: [ ${ { env.dotnet } } ]
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        dotnet:
+          - ${{ env.dotnet }}
     env:
       test-name: dotnet-${{ matrix.dotnet }}-results-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
