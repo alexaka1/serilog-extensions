@@ -61,7 +61,6 @@ jobs:
         uses: changesets/action@v1
         with:
           version: |
-            set -e
             yarn run version
             VERSION=$(jq -r '.version' "${{ env.SERILOG_EXPRESSIONS_FORMATTING_PACKAGE_JSON }}")
             sed -i "s#<VersionPrefix>.*</VersionPrefix>#<VersionPrefix>$VERSION</VersionPrefix>#" "${{ env.SERILOG_EXPRESSIONS_FORMATTING_CSPROJ }}"
