@@ -60,4 +60,4 @@ The recommended `ExpressionTemplate` is not as performant as a `Utf8JsonWriter`.
 | **IntProperties**     | **Utf8Json**   | **13.12 μs** | **0.254 μs** | **0.356 μs** | **12.97 μs** | **2.4414** |  **7.53 KB** |
 | **IntProperties**     | **Expression** | **23.84 μs** | **0.464 μs** | **0.534 μs** | **23.69 μs** | **4.3945** | **13.82 KB** |
 
-Also, I specifically had a use-case in the project which required logs to be in `camelCase`, and none of the built-in formatters supported that, not even `ExpressionTemplate`, since I couldn't find a way to specify a custom `JsonNamingPolicy` for properties.
+Also, I specifically had a use-case in a project which required logs to be in `camelCase`, and none of the built-in formatters supported that, not even `ExpressionTemplate`, since I couldn't find a way to specify a custom `JsonNamingPolicy` for properties.
