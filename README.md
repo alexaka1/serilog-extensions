@@ -24,7 +24,7 @@ var logger = new LoggerConfiguration()
     "formatter": {
       "type": "Serilog.Extensions.Formatting.Utf8JsonFormatter, Serilog.Extensions.Formatting",
       // if you want to use a custom naming policy, you can specify it here
-      "namingPolicy": "System.Text.Json.JsonNamingPolicy::CamelCase"
+      "namingPolicy": "System.Text.Json.JsonNamingPolicy::CamelCase, System.Text.Json"
     }
   }
 }
