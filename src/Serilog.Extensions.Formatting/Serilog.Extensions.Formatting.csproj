@@ -2,7 +2,7 @@
   <PropertyGroup>
     <PackageId>Alexaka1.Serilog.Extensions.Formatting</PackageId>
     <Description>Serilog extensions for formatting</Description>
-    <Version>0.0.2-beta</Version>
+    <Version>0.0.2</Version>
     <Authors>Alex Martossy</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>serilog;json;utf8jsonwriter;system.text.json</PackageTags>
