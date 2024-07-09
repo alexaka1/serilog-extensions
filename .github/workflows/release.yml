@@ -27,8 +27,6 @@ jobs:
       pull-requests: write
       contents: write
       issues: read
-    needs:
-      - tests
     outputs:
       publishable: ${{ steps.pack.outputs.canPack == 'true'}}
     steps:
@@ -95,6 +93,7 @@ jobs:
     if: needs.check-release.outputs.publishable == 'true'
     needs:
       - check-release
+      - tests
     permissions:
       contents: read
     steps:
