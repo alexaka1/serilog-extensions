@@ -19,6 +19,8 @@ jobs:
   tests:
     name: Tests
     uses: ./.github/workflows/tests.yml
+    permissions:
+      contents: read
   check-release:
     name: Prepare release
     runs-on: ubuntu-24.04
