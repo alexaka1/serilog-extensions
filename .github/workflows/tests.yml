@@ -19,7 +19,7 @@ jobs:
           - windows-latest
           - macos-latest
         dotnet:
-          - 8.0.x
+          - 8.0.6
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
