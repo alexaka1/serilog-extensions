@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/*
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
@@ -15,6 +16,9 @@ env:
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
 jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
   check-release:
     name: Prepare release
     runs-on: ubuntu-24.04
@@ -22,6 +26,8 @@ jobs:
       pull-requests: write
       contents: write
       issues: read
+    needs:
+      - tests
     outputs:
       publishable: ${{ steps.pack.outputs.canPack == 'true'}}
     steps:
