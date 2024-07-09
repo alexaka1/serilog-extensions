@@ -42,7 +42,6 @@ jobs:
       - name: Dotnet build
         run: dotnet build --configuration Release --no-restore
       - name: Test with dotnet
-        continue-on-error: true
         run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
       - name: Upload dotnet test results artifacts
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
