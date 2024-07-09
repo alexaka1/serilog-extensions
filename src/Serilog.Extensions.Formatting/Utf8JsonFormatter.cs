@@ -318,6 +318,11 @@ public class Utf8JsonFormatter : ITextFormatter
 
                         break;
                     }
+                    case Guid guid:
+                    {
+                        writer.WriteStringValue(guid);
+                        break;
+                    }
                     default:
                     {
                         if (vt.GetType().IsEnum)
@@ -330,7 +335,8 @@ public class Utf8JsonFormatter : ITextFormatter
                             if (span.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: default))
                             {
-                                writer.WriteRawValue(buffer[..written]);
+                                // fallback to string
+                                writer.WriteStringValue(buffer[..written]);
                             }
                         }
 

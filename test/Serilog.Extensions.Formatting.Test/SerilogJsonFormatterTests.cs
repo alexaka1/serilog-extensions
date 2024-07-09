@@ -39,6 +39,19 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void AnArrayPropertySerializesAsObjectToStringValue()
+    {
+        string name = Some.String();
+        Guid[] value = [Guid.Empty, Guid.NewGuid(), Guid.NewGuid()];
+        var @event = Some.InformationEvent();
+        @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+        var formatted = FormatJson(@event);
+
+        Assert.Equal("System.Guid[]", (string?)formatted["Properties"]?[name]);
+    }
+
+    [Fact]
     public void ABooleanPropertySerializesAsBooleanValue()
     {
         string name = Some.String();
@@ -49,6 +62,19 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
         var formatted = FormatJson(@event);
 
         Assert.Equal(Value, (bool?)formatted["Properties"]?[name]);
+    }
+
+    [Fact]
+    public void AGuidPropertySerializesAsStringValue()
+    {
+        string name = Some.String();
+        var value = Guid.NewGuid();
+        var @event = Some.InformationEvent();
+        @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+        var formatted = FormatJson(@event);
+
+        Assert.Equal(value.ToString(), (string?)formatted["Properties"]?[name]);
     }
 
     [Fact]
@@ -109,7 +135,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void AEnumPropertySerializesAsStringValue()
+    public void AnEnumPropertySerializesAsStringValue()
     {
         string name = Some.String();
         var value = TestEnum.Value1;
