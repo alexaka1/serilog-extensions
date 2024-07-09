@@ -74,8 +74,8 @@ jobs:
             fi
           done
           if [[ $failed -eq 1 ]]; then
-            echo "Some matrix jobs failed." >> $GITHUB_OUTPUT
+            echo "Some matrix jobs failed."
             exit 1
           else
-            echo "All tests succeeded." >> $GITHUB_OUTPUT
+            echo "All tests succeeded."
           fi
