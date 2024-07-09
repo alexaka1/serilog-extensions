@@ -67,15 +67,12 @@ jobs:
           disable-telemetry: true
       - name: Check for failed tests
         run: |
-          failed=0
+          echo "::debug::Checking for failed tests..."
+          echo "::debug::Job result: ${{ needs.test.result }}"
           for job in "${{ needs.test.result }}"; do
             if [[ "$job" == "failure" ]]; then
-              failed=1
+              echo "::error Some matrix jobs failed."
+              exit 1
             fi
           done
-          if [[ $failed -eq 1 ]]; then
-            echo "Some matrix jobs failed."
-            exit 1
-          else
-            echo "All tests succeeded."
-          fi
+          echo "All tests succeeded."
