@@ -52,3 +52,29 @@ jobs:
           name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
           path: TestResults
         if: ${{ always() }}
+  test-check:
+    name: Fail if tests failed
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    if: ${{ always() }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
+        with:
+          egress-policy: audit
+          disable-telemetry: true
+      - name: Check for failed tests
+        run: |
+          failed=0
+          for job in "${{ needs.test.result }}"; do
+            if [[ "$job" == "failure" ]]; then
+              failed=1
+            fi
+          done
+          if [[ $failed -eq 1 ]]; then
+            echo "Some matrix jobs failed." >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "All tests succeeded." >> $GITHUB_OUTPUT
+          fi
