@@ -9,7 +9,6 @@
     <!--    <PackageIcon>icon.png</PackageIcon>-->
     <PackageProjectUrl>https://github.com/alexaka1/serilog-extensions</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <IsTrimmable>true</IsTrimmable>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -18,7 +17,8 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
