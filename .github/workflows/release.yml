@@ -73,7 +73,7 @@ jobs:
           fi
       - name: Dotnet restore
         if: steps.pack.outputs.canPack == 'true'
-        run: dotnet restore ${{ env.Project }} --locked-mode
+        run: dotnet restore ${{ env.Project }}
       - name: Dotnet build
         if: steps.pack.outputs.canPack == 'true'
         run: dotnet build ${{ env.Project }} --configuration Release --no-restore

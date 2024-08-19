@@ -45,7 +45,7 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Dotnet restore
-        run: dotnet restore --locked-mode
+        run: dotnet restore
       - name: Dotnet build
         run: dotnet build --configuration Release --no-restore
       - name: Test with dotnet
