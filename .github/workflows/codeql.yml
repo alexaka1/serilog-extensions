@@ -43,9 +43,20 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
-          egress-policy: audit
-          disable-telemetry: true
-
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            api.nuget.org:443
+            crl3.digicert.com:80
+            crl4.digicert.com:80
+            dc.services.visualstudio.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            s.symcb.com:80
+            ts-crl.ws.symantec.com:80
+            uploads.github.com:443
+            www.microsoft.com:80
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:

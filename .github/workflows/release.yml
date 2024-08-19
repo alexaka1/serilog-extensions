@@ -33,8 +33,20 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
-          egress-policy: audit
-          disable-telemetry: true
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            aka.ms:443
+            api.github.com:443
+            api.nuget.org:443
+            cdn.fwupd.org:443
+            crl3.digicert.com:80
+            dotnetbuilds.azureedge.net:443
+            dotnetcli.azureedge.net:443
+            github.com:443
+            registry.npmjs.org:443
+            registry.yarnpkg.com:443
+            repo.yarnpkg.com:443
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
@@ -101,7 +113,6 @@ jobs:
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
           egress-policy: audit
-          disable-telemetry: true
       - name: Download nuget
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:

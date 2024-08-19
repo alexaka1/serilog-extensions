@@ -16,9 +16,10 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
-          egress-policy: audit
-          disable-telemetry: true
-
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
       - uses: dorny/test-reporter@9098107e2aa7ed7d1150f776ddea55f55c80016b # v1
         name: Upload dotnet test results summary
         with:

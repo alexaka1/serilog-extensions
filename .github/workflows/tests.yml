@@ -33,8 +33,31 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
-          egress-policy: audit
-          disable-telemetry: true
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            aka.ms:443
+            api.nuget.org:443
+            crl3.digicert.com:80
+            crl4.digicert.com:80
+            dotnetbuilds.azureedge.net:443
+            dotnetcli.azureedge.net:443
+            s.symcb.com:80
+            ts-crl.ws.symantec.com:80
+            www.microsoft.com:80
+            github.com:443
+            results-receiver.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+            api.github.com:443
+            *.actions.githubusercontent.com:443
+            codeload.github.com:443
+            ghcr.io:443
+            *.actions.githubusercontent.com:443
+            objects.githubusercontent.com:443
+            objects-origin.githubusercontent.com:443
+            github-releases.githubusercontent.com:443
+            github-registry-files.githubusercontent.com:443
+            *.actions.githubusercontent.com:443
       - name: Checkout code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
@@ -67,8 +90,22 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
-          egress-policy: audit
-          disable-telemetry: true
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            results-receiver.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+            api.github.com:443
+            *.actions.githubusercontent.com:443
+            codeload.github.com:443
+            ghcr.io:443
+            *.actions.githubusercontent.com:443
+            objects.githubusercontent.com:443
+            objects-origin.githubusercontent.com:443
+            github-releases.githubusercontent.com:443
+            github-registry-files.githubusercontent.com:443
+            *.actions.githubusercontent.com:443
       - name: Check for failed tests
         run: |
           echo "::debug::Checking for failed tests..."
