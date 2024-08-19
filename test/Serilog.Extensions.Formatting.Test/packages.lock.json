@@ -99,8 +99,8 @@
       },
       "Serilog": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "2jDkUrSh5EofOp7Lx5Zgy0EB+7hXjjxE2ktTb1WVQmU00lDACR2TdROGKU0K1pDTBSJBN1PqgYpgOZF8mL7NJw=="
+        "resolved": "4.0.1",
+        "contentHash": "pzeDRXdpSLSsgBHpZcmpIDxqMy845Ab4s+dfnBg0sN9h8q/4Wo3vAoe0QCGPze1Q06EVtEPupS+UvLm8iXQmTQ=="
       },
       "System.Diagnostics.EventLog": {
         "type": "Transitive",
@@ -155,7 +155,7 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.0.0, )"
+          "Serilog": "[4.0.1, )"
         }
       }
     }
