@@ -8,19 +8,20 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0"/>
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1"/>
-    <PackageReference Include="Serilog.Enrichers.Memory" Version="1.0.4"/>
-    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0"/>
-    <PackageReference Include="Serilog.Enrichers.Sensitive" Version="1.7.3"/>
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
-    <PackageReference Include="Serilog.Exceptions" Version="8.4.0"/>
-    <PackageReference Include="Serilog.Expressions" Version="5.0.0"/>
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Memory" Version="1.0.4" />
+    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Sensitive" Version="1.7.3" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
+    <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj"/>
+    <ProjectReference Include="..\..\src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj" />
   </ItemGroup>
 
 </Project>
