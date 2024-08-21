@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
   workflow_call:
 permissions: { }
-env:
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
-  DOTNET_NOLOGO: true
 jobs:
   test:
     name: Tests
