@@ -182,3 +182,4 @@ jobs:
           prerelease: ${{ steps.changelog.outputs.prerelease == 'true' }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          append_body: true
