@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Serilog.Parsing;
@@ -25,7 +25,9 @@ public class Utf8JsonFormatterTests
     public void RendersSameJsonAsJsonFormatter(LogEvent e)
     {
         var json = new JsonFormatter(renderMessage: true);
-        var utf8 = new Utf8JsonFormatter(renderMessage: true);
+        var utf8 = new Utf8JsonFormatter(renderMessage: true,
+            // fix Unicode escaping for the tests
+            jsonWriterEncoder: JavaScriptEncoder.UnsafeRelaxedJsonEscaping);
 
         var jsonB = new StringWriter();
         var utf8B = new StringWriter();
@@ -33,11 +35,13 @@ public class Utf8JsonFormatterTests
         utf8.Format(e, utf8B);
         jsonB.Flush();
         utf8B.Flush();
+        string expected = jsonB.ToString();
+        string actual = utf8B.ToString();
         _output.WriteLine("Json:");
-        _output.WriteLine(jsonB.ToString());
+        _output.WriteLine(expected);
         _output.WriteLine("Utf8:");
-        _output.WriteLine(utf8B.ToString());
-        Assert.Equal(Regex.Unescape(jsonB.ToString()), Regex.Unescape(utf8B.ToString()));
+        _output.WriteLine(actual);
+        Assert.Equal(expected, actual);
     }
 
     public static TheoryData<LogEvent> LogEvents()
@@ -59,8 +63,8 @@ public class Utf8JsonFormatterTests
                     new LogEventProperty("Age", new ScalarValue(42)),
                     new LogEventProperty("City", new ScalarValue("London")),
                     new LogEventProperty("Time",
-                        // DateTimes are trimmed, todo: test this case elsewhere
-                        new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.789+01:00"))
+                        // DateTimes are trimmed, todo: we test this case elsewhere
+                        new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00"))
                     ),
                 ]),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
@@ -72,7 +76,7 @@ public class Utf8JsonFormatterTests
                     new LogEventProperty("Age", new ScalarValue(42)),
                     new LogEventProperty("City", new ScalarValue("London")),
                     new LogEventProperty("Time",
-                        new ScalarValue(new DateTimeOffset(2023, 1, 1, 12, 34, 56, 789, TimeSpan.FromHours(1)))
+                        new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.7891111+01:00"))
                     ),
                 ]),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Debug,
