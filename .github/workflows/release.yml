@@ -103,6 +103,7 @@ jobs:
           if-no-files-found: error
   release:
     name: Release package
+    environment: production
     runs-on: ubuntu-latest
     if: needs.check-release.outputs.publishable == 'true'
     needs:
