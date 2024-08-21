@@ -146,3 +146,37 @@ jobs:
         run: |
           git tag -a v${{ needs.check-release.outputs.version }} -m "Release v${{ needs.check-release.outputs.version }}"
           git push origin v${{ needs.check-release.outputs.version }}
+      - name: Changelog
+        run: |
+          input_file="src/Serilog.Extensions.Formatting/CHANGELOG.md"
+          output_file="changes.md"
+          # Find the line number of the first version heading
+          start_line=$(grep -nE '^## [0-9]+\.[0-9]+\.[0-9]' "$input_file" | head -n 1 | cut -d: -f1)
+
+          # Find the line number of the next version heading, if it exists
+          end_line=$(grep -nE '^## [0-9]+\.[0-9]+\.[0-9]' "$input_file" | sed -n '2p' | cut -d: -f1)
+
+          if [ -z "$end_line" ]; then
+            # If there is no next version, extract till the end of the file
+            sed -n "${start_line},\$p" "$input_file" > "$output_file"
+          else
+            # Extract only the section for the uppermost version
+            sed -n "${start_line},$(($end_line-1))p" "$input_file" > "$output_file"
+          fi
+          echo "changes=$output_file" >> "$GITHUB_OUTPUT"
+          prerelease=false
+          if [ -f ".changeset/pre.json" ]; then
+            prerelease=true
+          fi
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ github.workspace }}/artifacts/*.nupkg
+            ${{ github.workspace }}/artifacts/*.snupkg
+          body_path: ${{ steps.changelog.outputs.changes }}
+          # TODO: set false
+          draft: true
+          prerelease: ${{ steps.changelog.outputs.prerelease == 'true' }}
+          generate_release_notes: true
