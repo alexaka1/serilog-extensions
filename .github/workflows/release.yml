@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feature/release-test
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
