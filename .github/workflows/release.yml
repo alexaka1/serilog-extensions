@@ -170,8 +170,7 @@ jobs:
             prerelease=true
           fi
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
-          cd ${{ github.workspace }}/artifacts
-          ls -latr
+          ls -latr ${{ github.workspace }}/artifacts
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
