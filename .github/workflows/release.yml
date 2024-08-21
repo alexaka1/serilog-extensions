@@ -143,6 +143,7 @@ jobs:
         if: false
         run: dotnet nuget push ${{ github.workspace }}/artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
       - name: Tag release
+        if: false
         run: |
           git tag -a v${{ needs.check-release.outputs.version }} -m "Release v${{ needs.check-release.outputs.version }}"
           git push origin v${{ needs.check-release.outputs.version }}
