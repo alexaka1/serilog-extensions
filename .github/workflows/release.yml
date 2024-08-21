@@ -148,6 +148,7 @@ jobs:
           git tag -a v${{ needs.check-release.outputs.version }} -m "Release v${{ needs.check-release.outputs.version }}"
           git push origin v${{ needs.check-release.outputs.version }}
       - name: Changelog
+        id: changelog
         run: |
           input_file="src/Serilog.Extensions.Formatting/CHANGELOG.md"
           output_file="changes.md"
@@ -178,7 +179,7 @@ jobs:
             ${{ github.workspace }}/artifacts/*.nupkg
             ${{ github.workspace }}/artifacts/*.snupkg
           body_path: ${{ steps.changelog.outputs.changes }}
-          body: Something went wrong
+          body: Oh no, it looks the change-notes were not generated correctly by the action.
           # TODO: set false
           draft: true
           prerelease: ${{ steps.changelog.outputs.prerelease == 'true' }}
