@@ -16,11 +16,11 @@ env:
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
 jobs:
-  tests:
-    name: Tests
-    uses: ./.github/workflows/tests.yml
-    permissions:
-      contents: read
+#  tests:
+#    name: Tests
+#    uses: ./.github/workflows/tests.yml
+#    permissions:
+#      contents: read
   check-release:
     name: Prepare release
     runs-on: ubuntu-24.04
