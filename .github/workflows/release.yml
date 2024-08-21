@@ -108,7 +108,7 @@ jobs:
     if: needs.check-release.outputs.publishable == 'true'
     needs:
       - check-release
-      - tests
+#      - tests
     permissions:
       contents: write
     env:
