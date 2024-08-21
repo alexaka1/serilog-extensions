@@ -110,7 +110,7 @@ jobs:
       - check-release
       - tests
     permissions:
-      contents: read
+      contents: write
     env:
       email: actions.github@mail.martossy.hu
       name: GitHub Actions (alexaka1)
@@ -145,4 +145,4 @@ jobs:
       - name: Tag release
         run: |
           git tag -a v${{ needs.check-release.outputs.version }} -m "Release v${{ needs.check-release.outputs.version }}"
-          git push origin v${{ env.PackageJsonVersion }}
+          git push origin v${{ needs.check-release.outputs.version }}
