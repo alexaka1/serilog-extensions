@@ -180,8 +180,7 @@ jobs:
             ${{ github.workspace }}/artifacts/*.snupkg
           body_path: ${{ steps.changelog.outputs.changes }}
           body: Oh no, it looks the change-notes were not generated correctly by the action.
-          # TODO: set false
-          draft: true
+          draft: false
           prerelease: ${{ steps.changelog.outputs.prerelease == 'true' }}
           generate_release_notes: true
           fail_on_unmatched_files: true
