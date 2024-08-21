@@ -217,7 +217,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     {
         int value = Some.Int();
         var memberProp = new LogEventProperty(Some.String(), new ScalarValue(value));
-        var structure = new StructureValue(new[] { memberProp });
+        var structure = new StructureValue([memberProp]);
         var structureProp = new LogEventProperty(Some.String(), structure);
         var @event = Some.InformationEvent();
         @event.AddOrUpdateProperty(structureProp);
@@ -282,7 +282,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
             Information,
             null,
             Some.MessageTemplate(),
-            new[] { new LogEventProperty("name", new ScalarValue(DateOnly.MaxValue)) });
+            [new LogEventProperty("name", new ScalarValue(DateOnly.MaxValue))]);
 
         var formatted = FormatJson(@event);
         Assert.Equal(
@@ -315,7 +315,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
             Information,
             null,
             Some.MessageTemplate(),
-            new[] { new LogEventProperty("name", new ScalarValue(TimeOnly.MaxValue)) });
+            [new LogEventProperty("name", new ScalarValue(TimeOnly.MaxValue))]);
 
         var formatted = FormatJson(@event);
         Assert.Equal(
@@ -323,22 +323,23 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
             (string?)formatted["Properties"]?["name"]);
     }
 
-    [Fact(Skip = "https://github.com/alexaka1/serilog-extensions/issues/5")]
+    [Fact]
     public void PropertyTokensWithFormatStringsAreIncludedAsRenderings()
     {
         var p = new MessageTemplateParser();
         var e = new LogEvent(Some.OffsetInstant(), Information, null,
-            p.Parse("{AProperty:000}"), new[] { new LogEventProperty("AProperty", new ScalarValue(12)) });
+            p.Parse("{AProperty:000}"), [new LogEventProperty("AProperty", new ScalarValue(12))]);
 
         var d = FormatEvent(e);
+        output.WriteLine(d.ToString());
 
         var rs = d["Renderings"]?.AsObject() ?? new JsonObject();
         Assert.Single(rs);
         var ap = d["Renderings"]?["AProperty"];
-        var fs = ap?.AsObject() ?? new JsonObject();
+        var fs = ap?.AsArray() ?? [];
         Assert.Single(fs);
-        Assert.Equal("000", (string?)fs["Format"]);
-        Assert.Equal("012", (string?)fs["Rendering"]);
+        Assert.Equal("000", (string?)fs.Single()?["Format"]);
+        Assert.Equal("012", (string?)fs.Single()?["Rendering"]);
     }
 
     [Fact]
@@ -346,7 +347,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     {
         var p = new MessageTemplateParser();
         var e = new LogEvent(Some.OffsetInstant(), Information, null,
-            p.Parse("{AProperty}"), new[] { new LogEventProperty("AProperty", new ScalarValue(12)) });
+            p.Parse("{AProperty}"), [new LogEventProperty("AProperty", new ScalarValue(12))]);
 
         var d = FormatEvent(e);
 
@@ -375,7 +376,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     {
         var p = new MessageTemplateParser();
         var e = new LogEvent(Some.OffsetInstant(), Information, null,
-            p.Parse("Value: {AProperty}"), new[] { new LogEventProperty("AProperty", new ScalarValue(12)) });
+            p.Parse("Value: {AProperty}"), [new LogEventProperty("AProperty", new ScalarValue(12))]);
 
         var formatter = new Utf8JsonFormatter(renderMessage: true);
 
@@ -392,10 +393,9 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
         var p = new MessageTemplateParser();
         var e = new LogEvent(Some.OffsetInstant(), Information, null,
             p.Parse("{@AProperty}"),
-            new[]
-            {
+            [
                 new LogEventProperty("AProperty", new SequenceValue([new SequenceValue([new ScalarValue("Hello")])])),
-            });
+            ]);
 
         var d = FormatEvent(e);
 

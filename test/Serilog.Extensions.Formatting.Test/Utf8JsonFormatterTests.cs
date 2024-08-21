@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Serilog.Events;
+using Serilog.Formatting.Json;
 using Serilog.Parsing;
 using Serilog.Templates;
 using Xunit.Abstractions;
@@ -17,6 +19,78 @@ public class Utf8JsonFormatterTests
 
     private readonly ITestOutputHelper _output;
     private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
+
+    [Theory]
+    [MemberData(nameof(LogEvents))]
+    public void RendersSameJsonAsJsonFormatter(LogEvent e)
+    {
+        var json = new JsonFormatter(renderMessage: true);
+        var utf8 = new Utf8JsonFormatter(renderMessage: true);
+
+        var jsonB = new StringWriter();
+        var utf8B = new StringWriter();
+        json.Format(e, jsonB);
+        utf8.Format(e, utf8B);
+        jsonB.Flush();
+        utf8B.Flush();
+        _output.WriteLine("Json:");
+        _output.WriteLine(jsonB.ToString());
+        _output.WriteLine("Utf8:");
+        _output.WriteLine(utf8B.ToString());
+        Assert.Equal(Regex.Unescape(jsonB.ToString()), Regex.Unescape(utf8B.ToString()));
+    }
+
+    public static TheoryData<LogEvent> LogEvents()
+    {
+        var p = new MessageTemplateParser();
+        return new TheoryData<LogEvent>
+        {
+            new LogEvent(Some.OffsetInstant(), LogEventLevel.Information, null,
+                p.Parse("Value: {AProperty}"),
+                [
+                    new LogEventProperty("AProperty", new ScalarValue(12)),
+                ]),
+            new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
+                new Exception("test") { Data = { ["testData"] = "test2" } },
+                p.Parse(
+                    "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
+                [
+                    new LogEventProperty("Name", new ScalarValue("John Doe")),
+                    new LogEventProperty("Age", new ScalarValue(42)),
+                    new LogEventProperty("City", new ScalarValue("London")),
+                    new LogEventProperty("Time",
+                        // DateTimes are trimmed, todo: test this case elsewhere
+                        new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.789+01:00"))
+                    ),
+                ]),
+            new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
+                new Exception("test") { Data = { ["testData"] = "test2" } },
+                p.Parse(
+                    "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
+                [
+                    new LogEventProperty("Name", new ScalarValue("John Doe")),
+                    new LogEventProperty("Age", new ScalarValue(42)),
+                    new LogEventProperty("City", new ScalarValue("London")),
+                    new LogEventProperty("Time",
+                        new ScalarValue(new DateTimeOffset(2023, 1, 1, 12, 34, 56, 789, TimeSpan.FromHours(1)))
+                    ),
+                ]),
+            new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Debug,
+                new Exception("test") { Data = { ["testData"] = "test2" } },
+                p.Parse(
+                    "I have {Count} fruits, which are {Fruits}"),
+                [
+                    new LogEventProperty("Count", new ScalarValue(3)),
+                    new LogEventProperty("Fruits",
+                        new SequenceValue([
+                                new ScalarValue("apple"), new ScalarValue("banana"), new ScalarValue("cherry"),
+                            ]
+                        )
+                    ),
+                ]
+            ),
+        };
+    }
 
     [Fact]
     public void CamelCase()
@@ -171,40 +245,32 @@ public class Utf8JsonFormatterTests
             new Utf8JsonFormatter(null, true);
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
-        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, new AggregateException([
+        formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, new AggregateException(
                 new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-                new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
+                }), new Exception("test"), new InvalidOperationException("test2", new ArgumentException("test3")
                 {
                     Data = { ["test"] = "test2" },
-                }),
-            ]),
+                })),
             new MessageTemplate("hello world", []), [new LogEventProperty("hello", new ScalarValue("world"))],
             ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
