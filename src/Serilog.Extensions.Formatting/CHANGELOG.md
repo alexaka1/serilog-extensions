@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.1.1
+
+### Patch Changes
+
+- 1c9501c: Bump Serilog to 4.0.1
+
 ## 0.1.0
 
 ### Minor Changes
