@@ -4,5 +4,8 @@
   "initialVersions": {
     "alexaka1.serilog.extensions.formatting": "0.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "eight-birds-develop",
+    "shy-eagles-compare"
+  ]
 }
