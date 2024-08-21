@@ -178,6 +178,7 @@ jobs:
             ${{ github.workspace }}/artifacts/*.nupkg
             ${{ github.workspace }}/artifacts/*.snupkg
           body_path: ${{ steps.changelog.outputs.changes }}
+          body: Something went wrong
           # TODO: set false
           draft: true
           prerelease: ${{ steps.changelog.outputs.prerelease == 'true' }}
