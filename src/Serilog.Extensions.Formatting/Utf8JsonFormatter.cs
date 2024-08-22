@@ -11,7 +11,7 @@ namespace Serilog.Extensions.Formatting;
 /// <summary>
 ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
 /// </summary>
-public class Utf8JsonFormatter : ITextFormatter
+public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
 {
     private readonly string _closingDelimiter;
     private readonly CultureInfo _formatProvider;
@@ -71,6 +71,20 @@ public class Utf8JsonFormatter : ITextFormatter
             });
     }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        await DisposeAsyncCore();
+        GC.SuppressFinalize(this);
+    }
+
 
     /// <inheritdoc />
     /// <exception cref="ArgumentNullException">When <paramref name="logEvent" /> is <c>null</c></exception>
@@ -89,42 +103,43 @@ public class Utf8JsonFormatter : ITextFormatter
             str = new MemoryStream();
         }
 
-        var writer = GetWriter(str);
-        writer.WriteStartObject();
-        writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
-        writer.WriteString(_names.Level, Enum.GetName(logEvent.Level));
-        writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
+        ResetWriter(str);
+
+        _writer.WriteStartObject();
+        _writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
+        _writer.WriteString(_names.Level, Enum.GetName(logEvent.Level));
+        _writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
         if (_renderMessage)
         {
-            writer.WriteString(_names.RenderedMessage,
+            _writer.WriteString(_names.RenderedMessage,
                 logEvent.MessageTemplate.Render(logEvent.Properties, _formatProvider));
         }
 
         if (logEvent.TraceId.HasValue)
         {
-            writer.WriteString(_names.TraceId, logEvent.TraceId.Value.ToString());
+            _writer.WriteString(_names.TraceId, logEvent.TraceId.Value.ToString());
         }
 
         if (logEvent.SpanId.HasValue)
         {
-            writer.WriteString(_names.SpanId, logEvent.SpanId.Value.ToString());
+            _writer.WriteString(_names.SpanId, logEvent.SpanId.Value.ToString());
         }
 
         if (logEvent.Exception != null)
         {
-            writer.WriteString(_names.Exception, logEvent.Exception.ToString());
+            _writer.WriteString(_names.Exception, logEvent.Exception.ToString());
         }
 
         if (logEvent.Properties.Count != 0)
         {
-            writer.WriteStartObject(_names.Properties);
+            _writer.WriteStartObject(_names.Properties);
             foreach (var property in logEvent.Properties)
             {
-                writer.WritePropertyName(_namingPolicy.ConvertName(property.Key));
-                Format(property.Value, writer);
+                _writer.WritePropertyName(_namingPolicy.ConvertName(property.Key));
+                Format(property.Value);
             }
 
-            writer.WriteEndObject();
+            _writer.WriteEndObject();
         }
 
 
@@ -136,13 +151,13 @@ public class Utf8JsonFormatter : ITextFormatter
 
         if (tokensWithFormat.Length != 0)
         {
-            writer.WriteStartObject(_names.Renderings);
-            WriteRenderingsValues(tokensWithFormat, logEvent.Properties, writer);
-            writer.WriteEndObject();
+            _writer.WriteStartObject(_names.Renderings);
+            WriteRenderingsObject(tokensWithFormat, logEvent.Properties);
+            _writer.WriteEndObject();
         }
 
-        writer.WriteEndObject();
-        writer.Flush();
+        _writer.WriteEndObject();
+        _writer.Flush();
         if (output is not StreamWriter && str is MemoryStream mem)
         {
             // if we used memory stream, we wrote to the memory stream, so we need to write to the output manually
@@ -160,143 +175,138 @@ public class Utf8JsonFormatter : ITextFormatter
     /// </summary>
     /// <param name="stream">The stream to write to.</param>
     /// <returns>The <see cref="Utf8JsonWriter" /> instance.</returns>
-    private Utf8JsonWriter GetWriter(Stream stream)
+    private void ResetWriter(Stream stream)
     {
         _writer.Reset(stream);
-        return _writer;
     }
 
-    private void Format<TState>(TState? value, Utf8JsonWriter writer)
+    private void Format<TState>(TState? value)
     {
         ArgumentNullException.ThrowIfNull(value);
         switch (value)
         {
-            case ScalarValue sv:
-                VisitScalarValue(sv, writer);
+            case ScalarValue scalarValue:
+                VisitScalarValue(scalarValue);
                 return;
-            case SequenceValue seqv:
-                VisitSequenceValue(seqv, writer);
+            case SequenceValue sequenceValue:
+                VisitSequenceValue(sequenceValue);
                 return;
-            case StructureValue strv:
-                VisitStructureValue(strv, writer);
+            case StructureValue structureValue:
+                VisitStructureValue(structureValue);
                 return;
-            case DictionaryValue dictv:
-                VisitDictionaryValue(dictv, writer);
+            case DictionaryValue dictionaryValue:
+                VisitDictionaryValue(dictionaryValue);
                 return;
             default:
                 throw new NotSupportedException($"The value {value} is not of a type supported by this visitor.");
         }
     }
 
-    private void VisitDictionaryValue(DictionaryValue? value, Utf8JsonWriter writer)
+    private void VisitDictionaryValue(DictionaryValue dictionary)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        writer.WriteStartObject();
-        foreach (var element in value.Elements)
+        _writer.WriteStartObject();
+        foreach (var (scalarValue, value) in dictionary.Elements)
         {
-            if (element.Key.Value?.ToString() is { } key)
+            if (scalarValue.Value?.ToString() is { } key)
             {
-                writer.WritePropertyName(_namingPolicy.ConvertName(key));
+                _writer.WritePropertyName(_namingPolicy.ConvertName(key));
             }
             else
             {
-                writer.WritePropertyName(_names.Null);
+                _writer.WritePropertyName(_names.Null);
             }
 
-            Format(element.Value, writer);
+            Format(value);
         }
 
-        writer.WriteEndObject();
+        _writer.WriteEndObject();
     }
 
-    private void VisitStructureValue(StructureValue? value, Utf8JsonWriter writer)
+    private void VisitStructureValue(StructureValue structure)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        writer.WriteStartObject();
-        foreach (var property in value.Properties)
+        _writer.WriteStartObject();
+        foreach (var property in structure.Properties)
         {
-            writer.WritePropertyName(_namingPolicy.ConvertName(property.Name));
-            Format(property.Value, writer);
+            _writer.WritePropertyName(_namingPolicy.ConvertName(property.Name));
+            Format(property.Value);
         }
 
-        if (value.TypeTag is not null)
+        if (structure.TypeTag != null)
         {
-            writer.WriteString(_names.TypeTag, value.TypeTag);
+            _writer.WriteString(_names.TypeTag, structure.TypeTag);
         }
 
-        writer.WriteEndObject();
+        _writer.WriteEndObject();
     }
 
-    private void VisitSequenceValue(SequenceValue? value, Utf8JsonWriter writer)
+    private void VisitSequenceValue(SequenceValue sequence)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        writer.WriteStartArray();
-        foreach (var element in value.Elements)
+        _writer.WriteStartArray();
+        foreach (var element in sequence.Elements)
         {
-            Format(element, writer);
+            Format(element);
         }
 
-        writer.WriteEndArray();
+        _writer.WriteEndArray();
     }
 
-    private void VisitScalarValue(ScalarValue? value, Utf8JsonWriter writer)
+    private void VisitScalarValue(ScalarValue value)
     {
-        ArgumentNullException.ThrowIfNull(value);
         switch (value.Value)
         {
             case null:
-                writer.WriteNullValue();
+                _writer.WriteNullValue();
                 break;
             case string str:
-                writer.WriteStringValue(str);
+                _writer.WriteStringValue(str);
                 break;
             case ValueType vt:
                 switch (vt)
                 {
                     case int i:
-                        writer.WriteNumberValue(i);
+                        _writer.WriteNumberValue(i);
                         break;
                     case uint ui:
-                        writer.WriteNumberValue(ui);
+                        _writer.WriteNumberValue(ui);
                         break;
                     case long l:
-                        writer.WriteNumberValue(l);
+                        _writer.WriteNumberValue(l);
                         break;
                     case ulong ul:
-                        writer.WriteNumberValue(ul);
+                        _writer.WriteNumberValue(ul);
                         break;
                     case decimal dc:
-                        writer.WriteNumberValue(dc);
+                        _writer.WriteNumberValue(dc);
                         break;
                     case byte bt:
-                        writer.WriteNumberValue(bt);
+                        _writer.WriteNumberValue(bt);
                         break;
                     case sbyte sb:
-                        writer.WriteNumberValue(sb);
+                        _writer.WriteNumberValue(sb);
                         break;
                     case short s:
-                        writer.WriteNumberValue(s);
+                        _writer.WriteNumberValue(s);
                         break;
                     case ushort us:
-                        writer.WriteNumberValue(us);
+                        _writer.WriteNumberValue(us);
                         break;
                     case double d:
-                        writer.WriteNumberValue(d);
+                        _writer.WriteNumberValue(d);
                         break;
                     case float f:
-                        writer.WriteNumberValue(f);
+                        _writer.WriteNumberValue(f);
                         break;
                     case bool b:
-                        writer.WriteBooleanValue(b);
+                        _writer.WriteBooleanValue(b);
                         break;
                     case char c:
-                        writer.WriteStringValue([c]);
+                        _writer.WriteStringValue([c]);
                         break;
                     case DateTime dt:
-                        writer.WriteStringValue(dt);
+                        _writer.WriteStringValue(dt);
                         break;
                     case DateTimeOffset dto:
-                        writer.WriteStringValue(dto);
+                        _writer.WriteStringValue(dto);
                         break;
                     case TimeSpan timeSpan:
                     {
@@ -304,7 +314,7 @@ public class Utf8JsonFormatter : ITextFormatter
                         if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                 format: "c"))
                         {
-                            writer.WriteStringValue(buffer[..written]);
+                            _writer.WriteStringValue(buffer[..written]);
                         }
 
                         break;
@@ -315,7 +325,7 @@ public class Utf8JsonFormatter : ITextFormatter
                         if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                 format: DateOnlyFormat))
                         {
-                            writer.WriteStringValue(buffer[..written]);
+                            _writer.WriteStringValue(buffer[..written]);
                         }
 
                         break;
@@ -326,21 +336,21 @@ public class Utf8JsonFormatter : ITextFormatter
                         if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                 format: TimeFormat))
                         {
-                            writer.WriteStringValue(buffer[..written]);
+                            _writer.WriteStringValue(buffer[..written]);
                         }
 
                         break;
                     }
                     case Guid guid:
                     {
-                        writer.WriteStringValue(guid);
+                        _writer.WriteStringValue(guid);
                         break;
                     }
                     default:
                     {
                         if (vt.GetType().IsEnum)
                         {
-                            writer.WriteStringValue(vt.ToString());
+                            _writer.WriteStringValue(vt.ToString());
                         }
                         else if (vt is ISpanFormattable span)
                         {
@@ -349,7 +359,7 @@ public class Utf8JsonFormatter : ITextFormatter
                                     format: default))
                             {
                                 // fallback to string
-                                writer.WriteStringValue(buffer[..written]);
+                                _writer.WriteStringValue(buffer[..written]);
                             }
                         }
 
@@ -359,60 +369,68 @@ public class Utf8JsonFormatter : ITextFormatter
 
                 break;
             default:
-                writer.WriteStringValue(value.Value?.ToString());
+                _writer.WriteStringValue(value.Value?.ToString());
                 break;
         }
     }
 
-    private void WriteRenderingsValues(ReadOnlySpan<IGrouping<string, PropertyToken>> tokensWithFormat,
-        IReadOnlyDictionary<string, LogEventPropertyValue> properties, Utf8JsonWriter writer)
+    private void WriteRenderingsObject(ReadOnlySpan<IGrouping<string, PropertyToken>> tokensWithFormat,
+        IReadOnlyDictionary<string, LogEventPropertyValue> properties)
     {
         foreach (var propertyFormats in tokensWithFormat)
         {
-            writer.WriteStartArray(propertyFormats.Key);
+            _writer.WriteStartArray(propertyFormats.Key);
             foreach (var format in propertyFormats)
             {
-                writer.WriteStartObject();
-                writer.WriteString(_names.Format, format.Format);
-                writer.WritePropertyName(_names.Rendering);
-                RenderPropertyToken(format, properties, writer, _formatProvider, true, false);
-                writer.WriteEndObject();
+                _writer.WriteStartObject();
+                _writer.WriteString(_names.Format, format.Format);
+                _writer.WritePropertyName(_names.Rendering);
+                RenderPropertyToken(format, properties);
+                _writer.WriteEndObject();
             }
 
-            writer.WriteEndArray();
+            _writer.WriteEndArray();
         }
     }
 
-    private void RenderPropertyToken(PropertyToken pt, IReadOnlyDictionary<string, LogEventPropertyValue> properties,
-        Utf8JsonWriter output, IFormatProvider formatProvider, bool isLiteral, bool isJson)
+    private void RenderPropertyToken(PropertyToken pt, IReadOnlyDictionary<string, LogEventPropertyValue> properties)
     {
         if (!properties.TryGetValue(pt.PropertyName, out var propertyValue))
         {
-            output.WriteStringValue(pt.ToString());
+            _writer.WriteStringValue(pt.ToString());
             return;
         }
 
-        RenderValue(propertyValue, isLiteral, isJson, output, pt.Format, formatProvider);
+        RenderValue(propertyValue, pt.Format);
     }
 
-    private void RenderValue(LogEventPropertyValue propertyValue, bool literal, bool json, Utf8JsonWriter output,
-        string? format, IFormatProvider formatProvider)
+    private void RenderValue(LogEventPropertyValue propertyValue,
+        string? format)
     {
-        if (literal && propertyValue is ScalarValue { Value: string str })
+        if (propertyValue is ScalarValue { Value: string str })
         {
-            output.WriteStringValue(str);
-        }
-        else if (json && format == null)
-        {
-            Format(propertyValue, output);
+            _writer.WriteStringValue(str);
         }
         else
         {
             // todo: optimize
             using var writer = new StringWriter();
-            propertyValue.Render(writer, format, formatProvider);
+            propertyValue.Render(writer, format, _formatProvider);
             writer.Flush();
-            output.WriteStringValue(writer.ToString());
+            _writer.WriteStringValue(writer.ToString());
         }
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _writer.Dispose();
+        }
+    }
+
+    private async ValueTask DisposeAsyncCore()
+    {
+        await _writer.DisposeAsync();
     }
 }
