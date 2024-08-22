@@ -24,6 +24,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
     private const string TimeFormat = "O";
     private readonly StringBuilder _sb;
     private readonly StringWriter _sw;
+    private readonly char[] _buffer;
 
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
@@ -73,6 +74,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
             });
         _sb = new StringBuilder();
         _sw = new StringWriter(_sb);
+        _buffer = new char[_spanBufferSize];
     }
 
     /// <inheritdoc />
@@ -314,7 +316,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
                         break;
                     case TimeSpan timeSpan:
                     {
-                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        Span<char> buffer = _buffer;
                         if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                 format: "c"))
                         {
@@ -325,7 +327,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
                     }
                     case DateOnly dateOnly:
                     {
-                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        Span<char> buffer = _buffer;
                         if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                 format: DateOnlyFormat))
                         {
@@ -336,7 +338,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
                     }
                     case TimeOnly timeOnly:
                     {
-                        Span<char> buffer = stackalloc char[_spanBufferSize];
+                        Span<char> buffer = _buffer;
                         if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                 format: TimeFormat))
                         {
@@ -358,7 +360,7 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
                         }
                         else if (vt is ISpanFormattable span)
                         {
-                            Span<char> buffer = stackalloc char[_spanBufferSize];
+                            Span<char> buffer = _buffer;
                             if (span.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: default))
                             {
