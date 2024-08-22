@@ -37,7 +37,7 @@ public class JsonFormatterBenchmark
                 Formatters.Json => new JsonFormatter(),
                 Formatters.Utf8Json => new Utf8JsonFormatter(skipValidation: true),
                 Formatters.Expression => new ExpressionTemplate("""
-                    { {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p} }
+                    { {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p,Renderings:@r} }
 
                     """),
                 _ => throw new ArgumentOutOfRangeException(nameof(Formatter), Formatter, null),
@@ -56,7 +56,7 @@ public class JsonFormatterBenchmark
     [Benchmark]
     public void IntProperties()
     {
-        _jsonLog.Error(_exception, "Hello, {A} {B} {C}!", 1, 2, 3);
+        _jsonLog.Error(_exception, "Hello, {A:0000} {B:0000} {C:0000}!", 1, 2, 3);
         _jsonLog.Information("The current time is, {Time}!", int.MaxValue);
         _jsonLog.Debug("Hello there!");
     }
@@ -64,9 +64,9 @@ public class JsonFormatterBenchmark
     [Benchmark]
     public void ComplexProperties()
     {
-        _jsonLog.Error(_exception, "Hello, {A} {@B} {C}!", s_propertyValue0, s_propertyValue1,
+        _jsonLog.Error(_exception, "Hello, {A:D} {@B} {C}!", s_propertyValue0, s_propertyValue1,
             s_propertyValue2);
-        _jsonLog.Information("The current time is, {Time}!", int.MaxValue);
+        _jsonLog.Information("The current time is, {Time:c}!", TimeSpan.MaxValue);
         _jsonLog.Debug("Hello there!");
     }
 
