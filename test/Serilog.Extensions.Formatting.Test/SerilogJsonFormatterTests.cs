@@ -275,22 +275,6 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void JsonFormattedDateOnly()
-    {
-        var @event = new LogEvent(
-            DateTimeOffset.MaxValue,
-            Information,
-            null,
-            Some.MessageTemplate(),
-            [new LogEventProperty("name", new ScalarValue(DateOnly.MaxValue))]);
-
-        var formatted = FormatJson(@event);
-        Assert.Equal(
-            "9999-12-31",
-            (string?)formatted["Properties"]?["name"]);
-    }
-
-    [Fact]
     public void JsonFormattedDate()
     {
         var @event = new LogEvent(
@@ -304,6 +288,22 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
         Assert.Equal(
             // zeroes are trimmed
             "2023-01-01T12:34:56.789",
+            (string?)formatted["Properties"]?["name"]);
+    }
+
+    [Fact]
+    public void JsonFormattedDateOnly()
+    {
+        var @event = new LogEvent(
+            DateTimeOffset.MaxValue,
+            Information,
+            null,
+            Some.MessageTemplate(),
+            [new LogEventProperty("name", new ScalarValue(DateOnly.MaxValue))]);
+
+        var formatted = FormatJson(@event);
+        Assert.Equal(
+            "9999-12-31",
             (string?)formatted["Properties"]?["name"]);
     }
 

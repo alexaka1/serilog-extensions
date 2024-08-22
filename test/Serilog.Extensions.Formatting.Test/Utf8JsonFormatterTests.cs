@@ -57,7 +57,7 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
                     new LogEventProperty("Age", new ScalarValue(42)),
                     new LogEventProperty("City", new ScalarValue("London")),
                     new LogEventProperty("Time",
-                        // DateTimes are trimmed, todo: we test this case elsewhere
+                        // DateTimes are trimmed, we test this case elsewhere
                         new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00"))
                     ),
                 ]),
