@@ -6,9 +6,6 @@
 
 A simple JSON formatter for Serilog that uses the `System.Text.Json.Utf8JsonWriter` to write the log events to the output stream.
 
-> [!IMPORTANT]
-> This formatter currently does not support the `Renderings` property of Serilog.
-
 ### Usage
 
 ```csharp
