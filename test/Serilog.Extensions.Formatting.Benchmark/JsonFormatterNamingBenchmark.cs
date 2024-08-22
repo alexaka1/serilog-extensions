@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -42,12 +45,12 @@ public class JsonFormatterNamingBenchmark
             .Enrich.WithProperty("HelloWorld", int.MaxValue);
     }
 
-    private static JsonNamingPolicy? GetNamingPolicy(Namings naming)
+    private static JsonNamingPolicy GetNamingPolicy(Namings naming)
     {
         return naming switch
         {
             Namings.CamelCase => JsonNamingPolicy.CamelCase,
-#if NET8_0_OR_GREATER
+#if FEATURE_JSON_NAMING_POLICY
             Namings.SnakeCase => JsonNamingPolicy.SnakeCaseLower,
             Namings.KebabCase => JsonNamingPolicy.KebabCaseLower,
 #endif
@@ -96,7 +99,7 @@ public class JsonFormatterNamingBenchmark
     public enum Namings
     {
         CamelCase,
-#if NET8_0_OR_GREATER
+#if FEATURE_JSON_NAMING_POLICY
         SnakeCase,
         KebabCase,
 #endif

@@ -1,11 +1,12 @@
 using System.Text.Json;
 
-namespace Serilog.Extensions.Formatting;
-
-internal class DefaultNamingPolicy : JsonNamingPolicy
+namespace Serilog.Extensions.Formatting
 {
-    public override string ConvertName(string name)
+    internal class DefaultNamingPolicy : JsonNamingPolicy
     {
-        return name;
+        public override string ConvertName(string name)
+        {
+            return name;
+        }
     }
 }

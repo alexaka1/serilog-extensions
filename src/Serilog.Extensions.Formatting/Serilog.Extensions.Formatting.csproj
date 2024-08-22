@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+<!--    <LangVersion>8.0</LangVersion>-->
     <PackageId>Alexaka1.Serilog.Extensions.Formatting</PackageId>
     <Description>Serilog extensions for formatting</Description>
     <Version>0.2.1</Version>
@@ -27,6 +30,7 @@
     <None Include="../../README.md" Pack="true" Visible="false" PackagePath="/"/>
     <None Include="../../LICENSE" Pack="true" Visible="false" PackagePath="/"/>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+    <PackageReference Include="System.Text.Json" Version="8.0.4" Condition="$(TargetFramework) == 'netstandard2.0'"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog" Version="4.0.1"/>

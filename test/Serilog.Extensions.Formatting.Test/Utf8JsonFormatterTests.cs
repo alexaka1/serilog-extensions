@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -204,7 +207,7 @@ public class Utf8JsonFormatterTests
             Encoding.UTF8.GetString(stream.ToArray().AsSpan()));
     }
 
-#if NET8_0_OR_GREATER
+#if FEATURE_JSON_NAMING_POLICY
     [Fact]
     public void KebabCaseLower()
     {

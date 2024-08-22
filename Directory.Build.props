@@ -1,7 +1,5 @@
 <Project>
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -23,4 +21,11 @@
       <_Parameter1>$(MSBuildProjectName).Test</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+    <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;FEATURE_JSON_NAMING_POLICY;</DefineConstants>
+  </PropertyGroup>
 </Project>

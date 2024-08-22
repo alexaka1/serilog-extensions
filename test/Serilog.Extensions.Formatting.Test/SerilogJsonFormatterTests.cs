@@ -1,6 +1,10 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using Serilog.Events;
 using Serilog.Parsing;
@@ -70,7 +74,7 @@ public class SerilogJsonFormatterTests
 
         var formatted = FormatJson(@event);
 
-        Assert.Equal(Value.ToString(), (string?)formatted["Properties"]?[name]);
+        Assert.Equal(Value.ToString(), (string)formatted["Properties"]?[name]);
     }
 
     [Fact]
@@ -140,7 +144,7 @@ public class SerilogJsonFormatterTests
 
         var formatted = FormatJson(@event);
 
-        Assert.Equal(value.ToString(), (string?)formatted["Properties"]?[name]);
+        Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
     }
 
     [Fact]
@@ -153,7 +157,7 @@ public class SerilogJsonFormatterTests
 
         var formatted = FormatJson(@event);
 
-        Assert.Equal("System.Guid[]", (string?)formatted["Properties"]?[name]);
+        Assert.Equal("System.Guid[]", (string)formatted["Properties"]?[name]);
     }
 
     [Fact]
@@ -166,14 +170,14 @@ public class SerilogJsonFormatterTests
 
         var formatted = FormatJson(@event);
 
-        Assert.Equal(value.ToString(), (string?)formatted["Properties"]?[name]);
+        Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
 
         value = TestEnum.asdf;
         @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
 
         formatted = FormatJson(@event);
 
-        Assert.Equal(value.ToString(), (string?)formatted["Properties"]?[name]);
+        Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
     }
 
     [Fact]
@@ -248,7 +252,7 @@ public class SerilogJsonFormatterTests
         var e = DelegatingSink.GetLogEvent(l => l.Information("Value is {ADictionary}", dict),
             cfg => cfg.Destructure.AsDictionary<MyDictionary>());
         var f = FormatJson(e);
-        Assert.Equal("world", (string?)f["Properties"]?["ADictionary"]?["hello"]);
+        Assert.Equal("world", (string)f["Properties"]?["ADictionary"]?["hello"]);
         Assert.Equal(1.2, (double?)f["Properties"]?["ADictionary"]?["nums"]?[0]);
     }
 
@@ -279,7 +283,7 @@ public class SerilogJsonFormatterTests
         var e = DelegatingSink.GetLogEvent(l => l.Information("Value is {ADictionary}", dict));
         var f = FormatJson(e);
 
-        Assert.Equal("world", (string?)f["Properties"]?["ADictionary"]?["hello"]);
+        Assert.Equal("world", (string)f["Properties"]?["ADictionary"]?["hello"]);
         Assert.Equal(1.2, (double?)f["Properties"]?["ADictionary"]?["nums"]?[0]);
     }
 
@@ -299,7 +303,7 @@ public class SerilogJsonFormatterTests
         Assert.Equal(
             // zeroes are trimmed
             "2023-01-01T12:34:56.789",
-            (string?)formatted["Properties"]?["name"]);
+            (string)formatted["Properties"]?["name"]);
     }
 
     [Fact]
@@ -316,7 +320,7 @@ public class SerilogJsonFormatterTests
         var formatted = FormatJson(@event);
         Assert.Equal(
             "9999-12-31",
-            (string?)formatted["Properties"]?["name"]);
+            (string)formatted["Properties"]?["name"]);
     }
 
     [Fact]
@@ -334,7 +338,7 @@ public class SerilogJsonFormatterTests
         Assert.Equal(
             // timestamp is formatted as `O`
             "2013-03-11T15:59:00.1230000+10:00",
-            (string?)formatted["Timestamp"]);
+            (string)formatted["Timestamp"]);
     }
 
     [Fact]
@@ -351,7 +355,7 @@ public class SerilogJsonFormatterTests
         var formatted = FormatJson(@event);
         Assert.Equal(
             "23:59:59.9999999",
-            (string?)formatted["Properties"]?["name"]);
+            (string)formatted["Properties"]?["name"]);
     }
 
     [Fact]
@@ -370,8 +374,8 @@ public class SerilogJsonFormatterTests
         var ap = d["Renderings"]?["AProperty"];
         var fs = ap?.AsArray() ?? new JsonArray();
         Assert.Single(fs);
-        Assert.Equal("000", (string?)fs.Single()?["Format"]);
-        Assert.Equal("012", (string?)fs.Single()?["Rendering"]);
+        Assert.Equal("000", (string)fs.Single()?["Format"]);
+        Assert.Equal("012", (string)fs.Single()?["Rendering"]);
     }
 
     [Fact]
@@ -384,7 +388,7 @@ public class SerilogJsonFormatterTests
 
         var d = FormatEvent(e);
 
-        var rs = (IEnumerable?)d["Renderings"];
+        var rs = (IEnumerable)d["Renderings"];
         Assert.Null(rs);
     }
 
@@ -400,7 +404,7 @@ public class SerilogJsonFormatterTests
         var e = DelegatingSink.GetLogEvent(l => l.Information("Value is {ADictionary}", dict));
         var f = FormatJson(e);
 
-        Assert.Equal("world", (string?)f["Properties"]?["ADictionary"]?["hello"]);
+        Assert.Equal("world", (string)f["Properties"]?["ADictionary"]?["hello"]);
         Assert.Equal(1.2, (double?)f["Properties"]?["ADictionary"]?["nums"]?[0]);
     }
 
@@ -436,7 +440,7 @@ public class SerilogJsonFormatterTests
 
         var d = FormatEvent(e);
 
-        string? h = (string?)d["Properties"]?["AProperty"]?[0]?[0];
+        string h = (string)d["Properties"]?["AProperty"]?[0]?[0];
         Assert.Equal("Hello", h);
     }
 

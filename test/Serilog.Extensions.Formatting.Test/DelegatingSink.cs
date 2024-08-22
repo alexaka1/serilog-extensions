@@ -1,3 +1,4 @@
+using System;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -19,9 +20,9 @@ public class DelegatingSink : ILogEventSink
     }
 
     public static LogEvent GetLogEvent(Action<ILogger> writeAction,
-        Func<LoggerConfiguration, LoggerConfiguration>? configure = null)
+        Func<LoggerConfiguration, LoggerConfiguration> configure = null)
     {
-        LogEvent? result = null;
+        LogEvent result = null;
         var configuration = new LoggerConfiguration()
             .MinimumLevel.Verbose()
             .WriteTo.Sink(new DelegatingSink(le => result = le));

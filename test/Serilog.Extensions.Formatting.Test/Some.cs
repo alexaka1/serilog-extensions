@@ -1,4 +1,7 @@
+using System;
 using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using Serilog.Events;
 using Serilog.Parsing;
 
@@ -18,7 +21,7 @@ internal static class Some
         return Int() + 0.123m;
     }
 
-    public static string String(string? tag = null)
+    public static string String(string tag = null)
     {
         return (tag ?? "") + "__" + Int();
     }
@@ -41,13 +44,14 @@ internal static class Some
     public static LogEvent LogEvent(
         DateTimeOffset? timestamp = null,
         LogEventLevel level = LogEventLevel.Information,
-        Exception? exception = null,
-        string? messageTemplate = null,
-        object?[]? propertyValues = null,
+        Exception exception = null,
+        string messageTemplate = null,
+        object[] propertyValues = null,
         ActivityTraceId traceId = default,
         ActivitySpanId spanId = default)
     {
         var logger = new LoggerConfiguration().CreateLogger();
+        // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
         Assert.True(logger.BindMessageTemplate(messageTemplate ?? "DEFAULT TEMPLATE", propertyValues,
             out var parsedTemplate, out var boundProperties));
         return new LogEvent(
@@ -102,7 +106,7 @@ internal static class Some
         return new MessageTemplateParser().Parse(String());
     }
 
-    public static Exception? Exception()
+    public static Exception Exception()
     {
         return new ArgumentException(String());
     }
