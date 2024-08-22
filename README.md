@@ -40,7 +40,7 @@ The `Utf8JsonFormatter` constructor accepts the following options:
 - `spanBufferSize`: The size of the buffer used to format the `ISpanFormattable` values. Defaults to `64`.
 - `skipValidation`: A boolean that determines whether the JSON writer will skip validation. Defaults to `true`.
 - `namingPolicy`: A `JsonNamingPolicy` that will be used to convert the property names. Default is leaving the property names as they are.
-- `jsonWriterEncoder`: A `JavaScriptEncoder` that will be used to encode the JSON output. Defaults to `null` which is considered to be safe. However please note that Unicode characters will be escaped in the output. [More info](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/character-encoding).
+- `jsonWriterEncoder`: A `JavaScriptEncoder` that will be used to encode the JSON output. Defaults to `null` which is considered to be safe. However please note that some Unicode characters will be escaped in the output. [More info](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/character-encoding).
 
 # Why?
 
