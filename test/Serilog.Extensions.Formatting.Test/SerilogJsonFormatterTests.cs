@@ -291,6 +291,23 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void JsonFormattedDate()
+    {
+        var @event = new LogEvent(
+            DateTimeOffset.MaxValue,
+            Information,
+            null,
+            Some.MessageTemplate(),
+            [new LogEventProperty("name", new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.789000")))]);
+
+        var formatted = FormatJson(@event);
+        Assert.Equal(
+            // zeroes are trimmed
+            "2023-01-01T12:34:56.789",
+            (string?)formatted["Properties"]?["name"]);
+    }
+
+    [Fact]
     public void JsonFormattedEventsIncludeTimestamp()
     {
         var @event = new LogEvent(
@@ -303,6 +320,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
         var formatted = FormatJson(@event);
 
         Assert.Equal(
+            // timestamp is formatted as `O`
             "2013-03-11T15:59:00.1230000+10:00",
             (string?)formatted["Timestamp"]);
     }
