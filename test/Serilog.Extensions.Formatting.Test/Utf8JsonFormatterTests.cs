@@ -212,7 +212,7 @@ namespace Serilog.Extensions.Formatting.Test
                     ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
                 writer.Flush();
                 Assert.Equal(
-                    @"{""Timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""Level"":""Debug"",""MessageTemplate"":""hello world"",""TraceId"":""3653d3ec94d045b9850794a08a4b286f"",""SpanId"":""fcfb4c32a12a3532"",""Properties"":{""hello"":""world""}}",
+                    @"{""Timesttestsamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""Level"":""Debug"",""MessageTemplate"":""hello world"",""TraceId"":""3653d3ec94d045b9850794a08a4b286f"",""SpanId"":""fcfb4c32a12a3532"",""Properties"":{""hello"":""world""}}",
                     Encoding.UTF8.GetString(stream.ToArray()));
             }
         }
