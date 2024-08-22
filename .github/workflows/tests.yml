@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 on:
   pull_request:
     paths-ignore:
@@ -9,15 +9,13 @@ permissions: { }
 jobs:
   test:
     name: Tests
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - windows-latest
           - macos-latest
-        dotnet:
-          - 8.0.x
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -54,58 +52,21 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           persist-credentials: false
-      - name: Setup Dotnet ${{ matrix.dotnet }}
+      - name: Setup Dotnet
         id: dotnet-setup
         uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
         with:
-          dotnet-version: ${{ matrix.dotnet }}
+          dotnet-version: |
+            8.0.x
       - name: Dotnet restore
         run: dotnet restore
       - name: Dotnet build
         run: dotnet build --configuration Release --no-restore
       - name: Test with dotnet
-        continue-on-error: true
-        run: dotnet test --configuration Release --no-restore --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
-      - name: Upload dotnet test results artifacts
-        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
-        with:
-          name: dotnet-${{ steps.dotnet-setup.outputs.dotnet-version }}-tests-on-${{ matrix.os }}
-          path: TestResults
-        if: ${{ always() }}
-  test-check:
-    name: Fail if tests failed
-    runs-on: ubuntu-latest
-    needs:
-      - test
-    if: ${{ always() }}
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
-            github.com:443
-            results-receiver.actions.githubusercontent.com:443
-            *.blob.core.windows.net:443
-            api.github.com:443
-            *.actions.githubusercontent.com:443
-            codeload.github.com:443
-            ghcr.io:443
-            *.actions.githubusercontent.com:443
-            objects.githubusercontent.com:443
-            objects-origin.githubusercontent.com:443
-            github-releases.githubusercontent.com:443
-            github-registry-files.githubusercontent.com:443
-            *.actions.githubusercontent.com:443
-      - name: Check for failed tests
-        run: |
-          echo "::debug::Checking for failed tests..."
-          echo "::debug::Job result: ${{ needs.test.result }}"
-          for job in "${{ needs.test.result }}"; do
-            if [[ "$job" == "failure" ]]; then
-              echo "::error Some matrix jobs failed."
-              exit 1
-            fi
-          done
-          echo "All tests succeeded."
+        run: >
+          dotnet test 
+          --configuration Release
+          --no-restore
+          --logger "GitHubActions;summary.includeSkippedTests=true"
+          --
+          RunConfiguration.CollectSourceInformation=true
