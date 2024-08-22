@@ -393,11 +393,7 @@ public class Utf8JsonFormatter : ITextFormatter
             return;
         }
 
-        if (!pt.Alignment.HasValue)
-        {
-            RenderValue(propertyValue, isLiteral, isJson, output, pt.Format, formatProvider);
-        }
-        // todo: alignment
+        RenderValue(propertyValue, isLiteral, isJson, output, pt.Format, formatProvider);
     }
 
     private void RenderValue(LogEventPropertyValue propertyValue, bool literal, bool json, Utf8JsonWriter output,
@@ -413,6 +409,7 @@ public class Utf8JsonFormatter : ITextFormatter
         }
         else
         {
+            // todo: optimize
             using var writer = new StringWriter();
             propertyValue.Render(writer, format, formatProvider);
             writer.Flush();
