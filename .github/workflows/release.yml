@@ -42,7 +42,9 @@ jobs:
             crl3.digicert.com:80
             dotnetbuilds.azureedge.net:443
             dotnetcli.azureedge.net:443
+            dc.services.visualstudio.com:443
             github.com:443
+            objects.githubusercontent.com:443
             registry.npmjs.org:443
             registry.yarnpkg.com:443
             repo.yarnpkg.com:443
