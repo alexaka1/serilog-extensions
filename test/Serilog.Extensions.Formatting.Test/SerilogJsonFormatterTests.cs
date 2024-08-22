@@ -287,7 +287,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
         var formatted = FormatJson(@event);
         Assert.Equal(
             "9999-12-31",
-            (string?)formatted["Properties"]!["name"]);
+            (string?)formatted["Properties"]?["name"]);
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class SerilogJsonFormatterTests(ITestOutputHelper output)
 
         var d = FormatEvent(e);
 
-        var rs = (IEnumerable)d["Renderings"]!;
+        var rs = (IEnumerable?)d["Renderings"];
         Assert.Null(rs);
     }
 

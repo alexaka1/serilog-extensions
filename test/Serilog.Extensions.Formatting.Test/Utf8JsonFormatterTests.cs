@@ -10,14 +10,8 @@ using Xunit.Abstractions;
 
 namespace Serilog.Extensions.Formatting.Test;
 
-public class Utf8JsonFormatterTests
+public class Utf8JsonFormatterTests(ITestOutputHelper output)
 {
-    public Utf8JsonFormatterTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
-    private readonly ITestOutputHelper _output;
     private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
 
     [Theory]
@@ -37,10 +31,10 @@ public class Utf8JsonFormatterTests
         utf8B.Flush();
         string expected = jsonB.ToString();
         string actual = utf8B.ToString();
-        _output.WriteLine("Json:");
-        _output.WriteLine(expected);
-        _output.WriteLine("Utf8:");
-        _output.WriteLine(actual);
+        output.WriteLine("Json:");
+        output.WriteLine(expected);
+        output.WriteLine("Utf8:");
+        output.WriteLine(actual);
         Assert.Equal(expected, actual);
     }
 
@@ -93,6 +87,27 @@ public class Utf8JsonFormatterTests
                     ),
                 ]
             ),
+            new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
+                new Exception("test") { Data = { ["testData"] = "test2" } },
+                p.Parse(
+                    "I have {Fruit,-20} fruits"),
+                [
+                    new LogEventProperty("Fruit", new ScalarValue("apple")),
+                ]
+            ),
+            new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
+                new Exception("test") { Data = { ["testData"] = "test2" } },
+                p.Parse(
+                    "I have {@Fruit,-40} fruits, {Hello:u3}"),
+                [
+                    new LogEventProperty("Fruit", new StructureValue([
+                                new LogEventProperty("apple", new ScalarValue("apple")),
+                            ]
+                        )
+                    ),
+                    new LogEventProperty("Hello", new ScalarValue("Hello World")),
+                ]
+            ),
         };
     }
 
@@ -134,7 +149,7 @@ public class Utf8JsonFormatterTests
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        _output.WriteLine(message);
+        output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 
@@ -156,7 +171,7 @@ public class Utf8JsonFormatterTests
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(sb.ToArray());
-        _output.WriteLine(message);
+        output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 
@@ -280,7 +295,7 @@ public class Utf8JsonFormatterTests
             ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        _output.WriteLine(message);
+        output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 }
