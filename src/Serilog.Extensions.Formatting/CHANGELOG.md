@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.2.1
+
+### Patch Changes
+
+- 779be2b: Fix incorrect readme statement on Renderings not being supported. It is supported since 0.2.0
+
 ## 0.2.0
 
 ### Minor Changes
