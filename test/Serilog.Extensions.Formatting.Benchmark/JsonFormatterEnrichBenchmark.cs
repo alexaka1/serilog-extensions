@@ -64,8 +64,10 @@ namespace Serilog.Extensions.Formatting.Benchmark
                 new List<IDisposable>
                 {
                     LogContext.PushProperty("HelloWorld", _exception, true),
+#if FEATURE_DATE_AND_TIME_ONLY
                     LogContext.PushProperty("CurrentDate", DateOnly.FromDateTime(DateTime.Now)),
                     LogContext.PushProperty("CurrentTime", TimeOnly.FromDateTime(DateTime.Now)),
+#endif
                     LogContext.PushProperty("CurrentDateTime", DateTime.Now),
                     LogContext.PushProperty("EnumValue", LogEventLevel.Fatal),
                 }.AsReadOnly();
