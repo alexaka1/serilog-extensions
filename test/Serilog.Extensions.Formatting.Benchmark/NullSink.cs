@@ -3,21 +3,22 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 
-namespace Serilog.Extensions.Formatting.Benchmark;
-
-public class NullSink : ILogEventSink
+namespace Serilog.Extensions.Formatting.Benchmark
 {
-    private readonly ITextFormatter _formatter;
-    private readonly TextWriter _textWriter;
-
-    public NullSink(ITextFormatter formatter, TextWriter textWriter)
+    public class NullSink : ILogEventSink
     {
-        _formatter = formatter;
-        _textWriter = textWriter;
-    }
+        private readonly ITextFormatter _formatter;
+        private readonly TextWriter _textWriter;
 
-    public void Emit(LogEvent logEvent)
-    {
-        _formatter.Format(logEvent, _textWriter);
+        public NullSink(ITextFormatter formatter, TextWriter textWriter)
+        {
+            _formatter = formatter;
+            _textWriter = textWriter;
+        }
+
+        public void Emit(LogEvent logEvent)
+        {
+            _formatter.Format(logEvent, _textWriter);
+        }
     }
 }

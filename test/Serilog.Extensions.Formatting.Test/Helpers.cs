@@ -1,28 +1,30 @@
 using System;
 using System.Text;
 using System.Text.Json;
+using Xunit;
 using Xunit.Abstractions;
 
-namespace Serilog.Extensions.Formatting.Test;
-
-public static class Helpers
+namespace Serilog.Extensions.Formatting.Test
 {
-    public static void AssertValidJson(string actual, ITestOutputHelper output = null)
+    public static class Helpers
     {
-        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(actual).AsSpan());
-        bool valid = false;
-        try
+        public static void AssertValidJson(string actual, ITestOutputHelper output = null)
         {
-            valid = JsonDocument.TryParseValue(ref reader, out _);
-        }
-        finally
-        {
-            if (!valid)
+            var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(actual).AsSpan());
+            bool valid = false;
+            try
             {
-                output?.WriteLine(actual);
+                valid = JsonDocument.TryParseValue(ref reader, out _);
             }
-        }
+            finally
+            {
+                if (!valid)
+                {
+                    output?.WriteLine(actual);
+                }
+            }
 
-        Assert.True(valid);
+            Assert.True(valid);
+        }
     }
 }

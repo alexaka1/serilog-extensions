@@ -24,14 +24,15 @@ namespace Serilog.Extensions.Formatting
         private readonly JsonNamingPolicy _namingPolicy;
         private readonly bool _renderMessage;
         private readonly StringBuilder _sb;
+
+        // ReSharper disable once NotAccessedField.Local
+        private readonly int _spanBufferSize;
         private readonly StringWriter _sw;
         private readonly Utf8JsonWriter _writer;
         private const string TimeFormat = "O";
 #if FEATURE_DATE_AND_TIME_ONLY
         private const string DateOnlyFormat = "O";
 #endif
-        // ReSharper disable once NotAccessedField.Local
-        private readonly int _spanBufferSize;
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
         /// <summary>
@@ -340,7 +341,7 @@ namespace Serilog.Extensions.Formatting
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                     format: "c"))
                             {
-                                _writer.WriteStringValue(buffer[..written]);
+                                _writer.WriteStringValue(buffer.Slice(0, written));
                             }
 #else
                             _writer.WriteStringValue(timeSpan.ToString("c", _formatProvider));
@@ -355,7 +356,7 @@ namespace Serilog.Extensions.Formatting
                             if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: DateOnlyFormat))
                             {
-                                _writer.WriteStringValue(buffer[..written]);
+                                _writer.WriteStringValue(buffer.Slice(0, written));
                             }
 
                             break;
@@ -366,7 +367,7 @@ namespace Serilog.Extensions.Formatting
                             if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: TimeFormat))
                             {
-                                _writer.WriteStringValue(buffer[..written]);
+                                _writer.WriteStringValue(buffer.Slice(0, written));
                             }
 
                             break;
@@ -390,7 +391,7 @@ namespace Serilog.Extensions.Formatting
                                 if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                                 {
                                     // fallback to string
-                                    _writer.WriteStringValue(buffer[..written]);
+                                    _writer.WriteStringValue(buffer.Slice(0, written));
                                 }
                             }
 #endif
