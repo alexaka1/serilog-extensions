@@ -20,8 +20,7 @@ public class Utf8JsonFormatter : ITextFormatter
     private readonly bool _renderMessage;
     private readonly int _spanBufferSize;
     private readonly Utf8JsonWriter _writer;
-    private const string NoQuotingOfStrings = "l";
-    private const string DateOnlyFormat = "yyyy-MM-dd";
+    private const string DateOnlyFormat = "O";
     private const string TimeFormat = "O";
 
     /// <summary>
