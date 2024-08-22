@@ -22,6 +22,8 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
     private readonly Utf8JsonWriter _writer;
     private const string DateOnlyFormat = "O";
     private const string TimeFormat = "O";
+    private readonly StringBuilder _sb;
+    private readonly StringWriter _sw;
 
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
@@ -69,6 +71,8 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
                 SkipValidation = skipValidation,
                 Encoder = jsonWriterEncoder,
             });
+        _sb = new StringBuilder();
+        _sw = new StringWriter(_sb);
     }
 
     /// <inheritdoc />
@@ -410,15 +414,12 @@ public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
         if (propertyValue is ScalarValue { Value: string str })
         {
             _writer.WriteStringValue(str);
+            return;
         }
-        else
-        {
-            // todo: optimize
-            using var writer = new StringWriter();
-            propertyValue.Render(writer, format, _formatProvider);
-            writer.Flush();
-            _writer.WriteStringValue(writer.ToString());
-        }
+
+        propertyValue.Render(_sw, format, _formatProvider);
+        _writer.WriteStringValue(_sw.ToString());
+        _sb.Clear();
     }
 
     private void Dispose(bool disposing)
