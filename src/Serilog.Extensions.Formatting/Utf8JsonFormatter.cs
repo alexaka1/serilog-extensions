@@ -130,7 +130,7 @@ namespace Serilog.Extensions.Formatting
 
             _writer.WriteStartObject();
             _writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
-            _writer.WriteString(_names.Level, Enum.GetName(logEvent.GetType(), logEvent.Level));
+            _writer.WriteString(_names.Level, Enum.GetName(typeof(LogEventLevel), logEvent.Level));
             _writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
             if (_renderMessage)
             {
