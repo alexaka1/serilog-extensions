@@ -302,7 +302,7 @@ public class Utf8JsonFormatter : ITextFormatter
                     {
                         Span<char> buffer = stackalloc char[_spanBufferSize];
                         if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
-                                format: default))
+                                format: "c"))
                         {
                             writer.WriteStringValue(buffer[..written]);
                         }
