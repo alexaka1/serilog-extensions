@@ -10,9 +10,15 @@ using Xunit.Abstractions;
 
 namespace Serilog.Extensions.Formatting.Test;
 
-public class Utf8JsonFormatterTests(ITestOutputHelper output)
+public class Utf8JsonFormatterTests
 {
     private readonly DateTimeOffset _dateTimeOffset = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
+    private readonly ITestOutputHelper _output;
+
+    public Utf8JsonFormatterTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
 
     [Theory]
     [MemberData(nameof(LogEvents))]
@@ -31,10 +37,10 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         utf8B.Flush();
         string expected = jsonB.ToString();
         string actual = utf8B.ToString();
-        output.WriteLine("Json:");
-        output.WriteLine(expected);
-        output.WriteLine("Utf8:");
-        output.WriteLine(actual);
+        _output.WriteLine("Json:");
+        _output.WriteLine(expected);
+        _output.WriteLine("Utf8:");
+        _output.WriteLine(actual);
         Assert.Equal(expected, actual);
     }
 
@@ -45,68 +51,68 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         {
             new LogEvent(Some.OffsetInstant(), LogEventLevel.Information, null,
                 p.Parse("Value: {AProperty}"),
-                [
-                    new LogEventProperty("AProperty", new ScalarValue(12)),
-                ]),
+                new List<LogEventProperty> { new("AProperty", new ScalarValue(12)) }.AsReadOnly()),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
                 new Exception("test") { Data = { ["testData"] = "test2" } },
                 p.Parse(
                     "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
-                [
-                    new LogEventProperty("Name", new ScalarValue("John Doe")),
-                    new LogEventProperty("Age", new ScalarValue(42)),
-                    new LogEventProperty("City", new ScalarValue("London")),
-                    new LogEventProperty("Time",
+                new List<LogEventProperty>
+                {
+                    new("Name", new ScalarValue("John Doe")),
+                    new("Age", new ScalarValue(42)),
+                    new("City", new ScalarValue("London")),
+                    new("Time",
                         // DateTimes are trimmed, we test this case elsewhere
                         new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00"))
                     ),
-                ]),
+                }.AsReadOnly()),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
                 new Exception("test") { Data = { ["testData"] = "test2" } },
                 p.Parse(
                     "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
-                [
-                    new LogEventProperty("Name", new ScalarValue("John Doe")),
-                    new LogEventProperty("Age", new ScalarValue(42)),
-                    new LogEventProperty("City", new ScalarValue("London")),
-                    new LogEventProperty("Time",
+                new List<LogEventProperty>
+                {
+                    new("Name", new ScalarValue("John Doe")),
+                    new("Age", new ScalarValue(42)),
+                    new("City", new ScalarValue("London")),
+                    new("Time",
                         new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.7891111+01:00"))
                     ),
-                ]),
+                }.AsReadOnly()),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Debug,
                 new Exception("test") { Data = { ["testData"] = "test2" } },
                 p.Parse(
                     "I have {Count} fruits, which are {Fruits}"),
-                [
-                    new LogEventProperty("Count", new ScalarValue(3)),
-                    new LogEventProperty("Fruits",
-                        new SequenceValue([
-                                new ScalarValue("apple"), new ScalarValue("banana"), new ScalarValue("cherry"),
-                            ]
+                new List<LogEventProperty>
+                {
+                    new("Count", new ScalarValue(3)),
+                    new("Fruits",
+                        new SequenceValue(new List<LogEventPropertyValue>
+                                { new ScalarValue("apple"), new ScalarValue("banana"), new ScalarValue("cherry") }
+                            .AsReadOnly()
                         )
                     ),
-                ]
+                }.AsReadOnly()
             ),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
                 new Exception("test") { Data = { ["testData"] = "test2" } },
                 p.Parse(
                     "I have {Fruit,-20} fruits"),
-                [
-                    new LogEventProperty("Fruit", new ScalarValue("apple")),
-                ]
+                new List<LogEventProperty> { new("Fruit", new ScalarValue("apple")) }.AsReadOnly()
             ),
             new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
                 new Exception("test") { Data = { ["testData"] = "test2" } },
                 p.Parse(
                     "I have {@Fruit,-40} fruits, {Hello:u3}"),
-                [
-                    new LogEventProperty("Fruit", new StructureValue([
-                                new LogEventProperty("apple", new ScalarValue("apple")),
-                            ]
+                new List<LogEventProperty>
+                {
+                    new("Fruit", new StructureValue(
+                            new List<LogEventProperty> { new("apple", new ScalarValue("apple")) }
+                                .AsReadOnly()
                         )
                     ),
-                    new LogEventProperty("Hello", new ScalarValue("Hello World")),
-                ]
+                    new("Hello", new ScalarValue("Hello World")),
+                }.AsReadOnly()
             ),
         };
     }
@@ -119,17 +125,19 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
-                new LogEventProperty("HelloWorld", new ScalarValue("world")),
-                new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
+                new("HelloWorld", new ScalarValue("world")),
+                new("Number", new ScalarValue(123)),
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","messageTemplate":"hello world {Number}","renderedMessage":"123","traceId":"3653d3ec94d045b9850794a08a4b286f","spanId":"fcfb4c32a12a3532","properties":{"helloWorld":"world","number":123}}
-            """, message);
+        Assert.Equal(
+            @"{""timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""level"":""Debug"",""messageTemplate"":""hello world {Number}"",""renderedMessage"":""123"",""traceId"":""3653d3ec94d045b9850794a08a4b286f"",""spanId"":""fcfb4c32a12a3532"",""properties"":{""helloWorld"":""world"",""number"":123}}",
+            message);
     }
 
     [Fact]
@@ -140,16 +148,18 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
-                new LogEventProperty("HelloWorld", new ScalarValue("world")),
-                new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
+                new("HelloWorld", new ScalarValue("world")),
+                new("Number", new ScalarValue(123)),
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        output.WriteLine(message);
+        _output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 
@@ -162,16 +172,18 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         var sb = new MemoryStream();
         using var writer = new StreamWriter(sb);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
-                new LogEventProperty("HelloWorld", new ScalarValue("world")),
-                new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
+                new("HelloWorld", new ScalarValue("world")),
+                new("Number", new ScalarValue(123)),
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(sb.ToArray());
-        output.WriteLine(message);
+        _output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 
@@ -182,15 +194,17 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world", []), [new LogEventProperty("hello", new ScalarValue("world"))],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
+            new List<LogEventProperty> { new("hello", new ScalarValue("world")) }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
-        Assert.Equal("""
-            {"Timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","Level":"Debug","MessageTemplate":"hello world","TraceId":"3653d3ec94d045b9850794a08a4b286f","SpanId":"fcfb4c32a12a3532","Properties":{"hello":"world"}}
-            """, Encoding.UTF8.GetString(stream.ToArray().AsSpan()));
+        Assert.Equal(
+            @"{""Timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""Level"":""Debug"",""MessageTemplate"":""hello world"",""TraceId"":""3653d3ec94d045b9850794a08a4b286f"",""SpanId"":""fcfb4c32a12a3532"",""Properties"":{""hello"":""world""}}",
+            Encoding.UTF8.GetString(stream.ToArray().AsSpan()));
     }
 
+#if NET8_0_OR_GREATER
     [Fact]
     public void KebabCaseLower()
     {
@@ -199,18 +213,18 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
                 new LogEventProperty("HelloWorld", new ScalarValue("world")),
                 new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","message-template":"hello world {Number}","rendered-message":"123","trace-id":"3653d3ec94d045b9850794a08a4b286f","span-id":"fcfb4c32a12a3532","properties":{"hello-world":"world","number":123}}
-            """, message);
+        Assert.Equal(@"{""timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""level"":""Debug"",""message-template"":""hello world {Number}"",""rendered-message"":""123"",""trace-id"":""3653d3ec94d045b9850794a08a4b286f"",""span-id"":""fcfb4c32a12a3532"",""properties"":{""hello-world"":""world"",""number"":123}}", message);
     }
 
     [Fact]
@@ -221,18 +235,18 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
                 new LogEventProperty("HelloWorld", new ScalarValue("world")),
                 new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        Assert.Equal("""
-            {"timestamp":"1970-01-01T00:00:00.0000000\u002B00:00","level":"Debug","message_template":"hello world {Number}","rendered_message":"123","trace_id":"3653d3ec94d045b9850794a08a4b286f","span_id":"fcfb4c32a12a3532","properties":{"hello_world":"world","number":123}}
-            """, message);
+        Assert.Equal(@"{""timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""level"":""Debug"",""message_template"":""hello world {Number}"",""rendered_message"":""123"",""trace_id"":""3653d3ec94d045b9850794a08a4b286f"",""span_id"":""fcfb4c32a12a3532"",""properties"":{""hello_world"":""world"",""number"":123}}", message);
     }
 
     [Fact]
@@ -243,19 +257,20 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
         formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-            new MessageTemplate("hello world {Number}", [new PropertyToken("Number", "{Number}")]),
-            [
+            new MessageTemplate("hello world {Number}",
+                new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
+            new List<LogEventProperty>
+            {
                 new LogEventProperty("HelloWorld", new ScalarValue("world")),
                 new LogEventProperty("Number", new ScalarValue(123)),
-            ],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        Assert.Equal("""
-            {"TIMESTAMP":"1970-01-01T00:00:00.0000000\u002B00:00","LEVEL":"Debug","MESSAGE_TEMPLATE":"hello world {Number}","RENDERED_MESSAGE":"123","TRACE_ID":"3653d3ec94d045b9850794a08a4b286f","SPAN_ID":"fcfb4c32a12a3532","PROPERTIES":{"HELLO_WORLD":"world","NUMBER":123}}
-            """, message);
+        Assert.Equal(@"{""TIMESTAMP"":""1970-01-01T00:00:00.0000000\u002B00:00"",""LEVEL"":""Debug"",""MESSAGE_TEMPLATE"":""hello world {Number}"",""RENDERED_MESSAGE"":""123"",""TRACE_ID"":""3653d3ec94d045b9850794a08a4b286f"",""SPAN_ID"":""fcfb4c32a12a3532"",""PROPERTIES"":{""HELLO_WORLD"":""world"",""NUMBER"":123}}", message);
     }
+#endif
 
     [Fact]
     public void WithException()
@@ -290,12 +305,13 @@ public class Utf8JsonFormatterTests(ITestOutputHelper output)
                 {
                     Data = { ["test"] = "test2" },
                 })),
-            new MessageTemplate("hello world", []), [new LogEventProperty("hello", new ScalarValue("world"))],
-            ActivityTraceId.CreateFromUtf8String("3653d3ec94d045b9850794a08a4b286f"u8),
-            ActivitySpanId.CreateFromUtf8String("fcfb4c32a12a3532"u8)), writer);
+            new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
+            new List<LogEventProperty> { new("hello", new ScalarValue("world")) }.AsReadOnly(),
+            ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
+            ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
         writer.Flush();
         string message = Encoding.UTF8.GetString(stream.ToArray().AsSpan());
-        output.WriteLine(message);
+        _output.WriteLine(message);
         Helpers.AssertValidJson(message);
     }
 }

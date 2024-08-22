@@ -36,10 +36,8 @@ public class JsonFormatterBenchmark
             {
                 Formatters.Json => new JsonFormatter(),
                 Formatters.Utf8Json => new Utf8JsonFormatter(skipValidation: true),
-                Formatters.Expression => new ExpressionTemplate("""
-                    { {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p,Renderings:@r} }
-
-                    """),
+                Formatters.Expression => new ExpressionTemplate(
+                    "{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p,Renderings:@r} }\n"),
                 _ => throw new ArgumentOutOfRangeException(nameof(Formatter), Formatter, null),
             }, new StreamWriter(Stream.Null)))
             .CreateLogger();

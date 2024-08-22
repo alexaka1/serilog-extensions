@@ -58,6 +58,7 @@ jobs:
         with:
           dotnet-version: |
             8.0.x
+            6.0.x
       - name: Dotnet restore
         run: dotnet restore
       - name: Dotnet build

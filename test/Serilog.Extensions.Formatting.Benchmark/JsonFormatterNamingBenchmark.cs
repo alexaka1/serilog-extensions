@@ -47,8 +47,10 @@ public class JsonFormatterNamingBenchmark
         return naming switch
         {
             Namings.CamelCase => JsonNamingPolicy.CamelCase,
+#if NET8_0_OR_GREATER
             Namings.SnakeCase => JsonNamingPolicy.SnakeCaseLower,
             Namings.KebabCase => JsonNamingPolicy.KebabCaseLower,
+#endif
             Namings.None => null,
             _ => throw new ArgumentOutOfRangeException(nameof(naming), naming, null),
         };
@@ -94,8 +96,10 @@ public class JsonFormatterNamingBenchmark
     public enum Namings
     {
         CamelCase,
+#if NET8_0_OR_GREATER
         SnakeCase,
         KebabCase,
+#endif
         None,
     }
 }

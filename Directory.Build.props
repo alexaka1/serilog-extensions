@@ -1,8 +1,5 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <AnalysisLevel>latest</AnalysisLevel>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>

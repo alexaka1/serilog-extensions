@@ -4,10 +4,19 @@ using Serilog.Formatting;
 
 namespace Serilog.Extensions.Formatting.Test;
 
-public class NullSink(ITextFormatter formatter, TextWriter textWriter) : ILogEventSink
+public class NullSink : ILogEventSink
 {
+    private readonly ITextFormatter _formatter;
+    private readonly TextWriter _textWriter;
+
+    public NullSink(ITextFormatter formatter, TextWriter textWriter)
+    {
+        _formatter = formatter;
+        _textWriter = textWriter;
+    }
+
     public void Emit(LogEvent logEvent)
     {
-        formatter.Format(logEvent, textWriter);
+        _formatter.Format(logEvent, _textWriter);
     }
 }

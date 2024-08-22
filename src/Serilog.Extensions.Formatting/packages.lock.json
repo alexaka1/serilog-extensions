@@ -1,6 +1,46 @@
 {
   "version": 1,
   "dependencies": {
+    "net6.0": {
+      "Microsoft.NET.ILLink.Analyzers": {
+        "type": "Direct",
+        "requested": "[7.0.100-1.23401.1, )",
+        "resolved": "7.0.100-1.23401.1",
+        "contentHash": "XirkjOLc5Vc3HsXRc2Z6ZbQv6l0RvWgJa/31w7XqZ914MoSi3H3OCNRMWFw7H2EYfsnKbokFfhCcysAmUcEOgw=="
+      },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[7.0.100-1.23401.1, )",
+        "resolved": "7.0.100-1.23401.1",
+        "contentHash": "mI6vCdPEhluLtMn/GV0texEWg5oAPQWCCE4LWspM+Bmy75Nd4EQsziQXrdOFqNeSBQMrxDX9C/O5Xi3kpKSMIw=="
+      },
+      "Microsoft.SourceLink.GitHub": {
+        "type": "Direct",
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "G5q7OqtwIyGTkeIOAc3u2ZuV/kicQaec5EaRnc0pIeSnh9LUjj+PYQrJYBURvDt7twGl2PKA7nSN0kz1Zw5bnQ==",
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "8.0.0",
+          "Microsoft.SourceLink.Common": "8.0.0"
+        }
+      },
+      "Serilog": {
+        "type": "Direct",
+        "requested": "[4.0.1, )",
+        "resolved": "4.0.1",
+        "contentHash": "pzeDRXdpSLSsgBHpZcmpIDxqMy845Ab4s+dfnBg0sN9h8q/4Wo3vAoe0QCGPze1Q06EVtEPupS+UvLm8iXQmTQ=="
+      },
+      "Microsoft.Build.Tasks.Git": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "bZKfSIKJRXLTuSzLudMFte/8CempWjVamNUR5eHJizsy+iuOuO/k2gnh7W0dHJmYY0tBf+gUErfluCv5mySAOQ=="
+      },
+      "Microsoft.SourceLink.Common": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "dk9JPxTCIevS75HyEQ0E4OVAFhB2N+V9ShCXf8Q6FkUQZDkgLI12y679Nym1YqsiSysuQskT7Z+6nUf3yab6Vw=="
+      }
+    },
     "net8.0": {
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
