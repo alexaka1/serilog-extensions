@@ -78,7 +78,10 @@ jobs:
         with:
           reports: ./coverage/**/coverage.cobertura.xml
           targetdir: ./coverage
-          reporttypes: Cobertura
+          reporttypes: Cobertura;MarkdownSummaryGithub
+      - name: Coverage summary
+        run: |
+          cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Test Report Artifact
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
         with:
