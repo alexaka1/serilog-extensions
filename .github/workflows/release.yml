@@ -12,6 +12,9 @@ env:
   PackageJson: src/Serilog.Extensions.Formatting/package.json
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
+  YARN_ENABLE_HARDENED_MODE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 jobs:
   tests:
     name: Tests
@@ -117,8 +120,6 @@ jobs:
       contents: write
       id-token: write
     env:
-      email: actions.github@mail.martossy.hu
-      name: GitHub Actions (alexaka1)
       changelog: src/Serilog.Extensions.Formatting/CHANGELOG.md
     steps:
       - name: Harden Runner
