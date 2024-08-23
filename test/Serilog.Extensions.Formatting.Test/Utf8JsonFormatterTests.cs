@@ -5,24 +5,21 @@ using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using Serilog.Parsing;
 using Serilog.Templates;
 using Xunit;
+#if DEBUG
 using Xunit.Abstractions;
+#endif
 
 namespace Serilog.Extensions.Formatting.Test
 {
     public class Utf8JsonFormatterTests
     {
-        public Utf8JsonFormatterTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         private readonly DateTimeOffset _dateTimeOffset = new DateTimeOffset(new DateTime(1970, 1, 1), TimeSpan.Zero);
-        private readonly ITestOutputHelper _output;
 
         [Theory]
         [MemberData(nameof(LogEvents))]
@@ -41,10 +38,12 @@ namespace Serilog.Extensions.Formatting.Test
             utf8B.Flush();
             string expected = jsonB.ToString();
             string actual = utf8B.ToString();
+#if DEBUG
             _output.WriteLine("Json:");
             _output.WriteLine(expected);
             _output.WriteLine("Utf8:");
             _output.WriteLine(actual);
+#endif
             Assert.Equal(expected, actual);
         }
 
@@ -166,7 +165,9 @@ namespace Serilog.Extensions.Formatting.Test
                     ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
                 writer.Flush();
                 string message = Encoding.UTF8.GetString(stream.ToArray());
+#if DEBUG
                 _output.WriteLine(message);
+#endif
                 Helpers.AssertValidJson(message);
             }
         }
@@ -192,7 +193,9 @@ namespace Serilog.Extensions.Formatting.Test
                     ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
                 writer.Flush();
                 string message = Encoding.UTF8.GetString(sb.ToArray());
+#if DEBUG
                 _output.WriteLine(message);
+#endif
                 Helpers.AssertValidJson(message);
             }
         }
@@ -215,6 +218,32 @@ namespace Serilog.Extensions.Formatting.Test
                     @"{""Timestamp"":""1970-01-01T00:00:00.0000000\u002B00:00"",""Level"":""Debug"",""MessageTemplate"":""hello world"",""TraceId"":""3653d3ec94d045b9850794a08a4b286f"",""SpanId"":""fcfb4c32a12a3532"",""Properties"":{""hello"":""world""}}",
                     Encoding.UTF8.GetString(stream.ToArray()));
             }
+        }
+
+        [Fact]
+        public void NullParameterShouldThrow()
+        {
+            var formatter = new Utf8JsonFormatter();
+            // ReSharper disable AssignNullToNotNullAttribute
+            Assert.Throws<ArgumentNullException>(() => formatter.Format(null, new StringWriter()));
+            Assert.Throws<ArgumentNullException>(() => formatter.Format(Some.LogEvent(), null));
+            // ReSharper restore AssignNullToNotNullAttribute
+        }
+
+        [Fact]
+        public async Task UseAfterDisposeAsyncShouldThrow()
+        {
+            var formatter = new Utf8JsonFormatter();
+            await formatter.DisposeAsync();
+            Assert.Throws<ObjectDisposedException>(() => formatter.Format(Some.LogEvent(), new StringWriter()));
+        }
+
+        [Fact]
+        public void UseAfterDisposeShouldThrow()
+        {
+            var formatter = new Utf8JsonFormatter();
+            formatter.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => formatter.Format(Some.LogEvent(), new StringWriter()));
         }
 
         [Fact]
@@ -265,10 +294,20 @@ namespace Serilog.Extensions.Formatting.Test
                     ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
                 writer.Flush();
                 string message = Encoding.UTF8.GetString(stream.ToArray());
+#if DEBUG
                 _output.WriteLine(message);
+#endif
                 Helpers.AssertValidJson(message);
             }
         }
+#if DEBUG
+        public Utf8JsonFormatterTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
+        private readonly ITestOutputHelper _output;
+#endif
 
 #if FEATURE_JSON_NAMING_POLICY
         [Fact]

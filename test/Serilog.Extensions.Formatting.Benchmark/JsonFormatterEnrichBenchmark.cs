@@ -29,7 +29,7 @@ namespace Serilog.Extensions.Formatting.Benchmark
         private static readonly DateTime s_propertyValue0 = new DateTime(1970, 1, 1);
         private static readonly dynamic s_propertyValue1 = new { B = new DateTime(2000, 1, 1), C = new[] { 1, 2, 3 } };
 
-        private static readonly Dictionary<string, DateTime> s_propertyValue2 = new Dictionary<string, DateTime>()
+        private static readonly Dictionary<string, DateTime> s_propertyValue2 = new Dictionary<string, DateTime>
         {
             { "D", new DateTime(2000, 1, 1) },
             { "E", new DateTime(2000, 1, 1) },
@@ -58,7 +58,8 @@ namespace Serilog.Extensions.Formatting.Benchmark
                     Formatter == Formatters.Utf8Json ? new Utf8JsonFormatter(skipValidation: true) :
                     Formatter == Formatters.Expression ? (ITextFormatter)new ExpressionTemplate(
                         "{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p,Renderings:@r} }\n") :
-                    throw new ArgumentOutOfRangeException(nameof(Formatter), Formatter, null), new StreamWriter(Stream.Null)))
+                    throw new ArgumentOutOfRangeException(nameof(Formatter), Formatter, null),
+                    new StreamWriter(Stream.Null)))
                 .CreateLogger();
             _contexts =
                 new List<IDisposable>

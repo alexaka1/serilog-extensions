@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.Json.Nodes;
 using Serilog.Events;
 using Serilog.Parsing;
@@ -36,6 +38,9 @@ namespace Serilog.Extensions.Formatting.Test
         private JsonObject FormatJson(LogEvent @event)
         {
             string json = FormatToJson(@event);
+#if DEBUG
+            _output.WriteLine(json);
+#endif
             return JsonNode.Parse(json)?.AsObject() ?? new JsonObject();
         }
 
@@ -63,6 +68,19 @@ namespace Serilog.Extensions.Formatting.Test
             var formatted = FormatJson(@event);
 
             Assert.Equal(Value, (bool?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void AByteSerializesAsNumericValue()
+        {
+            string name = Some.String();
+            const byte Value = 123;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(Value, (byte?)formatted["Properties"]?[name]);
         }
 
         [Fact]
@@ -149,6 +167,19 @@ namespace Serilog.Extensions.Formatting.Test
         }
 
         [Fact]
+        public void ALongSerializesAsNumericValue()
+        {
+            string name = Some.String();
+            const long Value = long.MaxValue;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(Value, (long?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
         public void AnArrayPropertySerializesAsObjectToStringValue()
         {
             string name = Some.String();
@@ -159,6 +190,19 @@ namespace Serilog.Extensions.Formatting.Test
             var formatted = FormatJson(@event);
 
             Assert.Equal("System.Guid[]", (string)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void ANegativeIntegerPropertySerializesAsIntegerValue()
+        {
+            string name = Some.String();
+            int value = -Some.Int();
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(value, (int?)formatted["Properties"]?[name]);
         }
 
         [Fact]
@@ -195,6 +239,60 @@ namespace Serilog.Extensions.Formatting.Test
         }
 
         [Fact]
+        public void ANullIsSerializedAsNullRegardlessOfType()
+        {
+            string name = Some.String();
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(null)));
+
+            var formatted = FormatJson(@event);
+            Assert.Null(formatted["Properties"]?[name]);
+            int? value = null;
+            // ReSharper disable once ExpressionIsAlwaysNull
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            formatted = FormatJson(@event);
+            Assert.Null(formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void AnUnsignedIntegerPropertySerializesAsIntegerValue()
+        {
+            string name = Some.String();
+            const uint Value = 123;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+            var formatted = FormatJson(@event);
+            Assert.Equal(Value, (uint?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void AnUnsignedLongSerializesAsNumericValue()
+        {
+            string name = Some.String();
+            const ulong Value = ulong.MaxValue;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(Value, (ulong?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void AnUnsignedShortSerializesAsIntegerValue()
+        {
+            string name = Some.String();
+            const ushort Value = 15;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(Value, (ushort?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
         public void ASbyteSerializesAsNumericValue()
         {
             string name = Some.String();
@@ -227,6 +325,19 @@ namespace Serilog.Extensions.Formatting.Test
         }
 
         [Fact]
+        public void AShortSerializesAsIntegerValue()
+        {
+            string name = Some.String();
+            const short Value = 15;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(Value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(Value, (short?)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
         public void AStructureSerializesAsAnObject()
         {
             int value = Some.Int();
@@ -239,6 +350,36 @@ namespace Serilog.Extensions.Formatting.Test
             var formatted = FormatJson(@event);
             int? result = (int?)formatted["Properties"]?[structureProp.Name]?[memberProp.Name];
             Assert.Equal(value, result);
+        }
+
+        [Fact]
+        public void AStructureWithTypeTagSerializesAsAnObject()
+        {
+            int value = Some.Int();
+            var memberProp = new LogEventProperty(Some.String(), new ScalarValue(value));
+            var structure = new StructureValue(new List<LogEventProperty> { memberProp }.AsReadOnly(), "_myTypeTag");
+            var structureProp = new LogEventProperty(Some.String(), structure);
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(structureProp);
+
+            var formatted = FormatJson(@event);
+            int? result = (int?)formatted["Properties"]?[structureProp.Name]?[memberProp.Name];
+            Assert.Equal(value, result);
+            string typeTag = (string)formatted["Properties"]?[structureProp.Name]?["_typeTag"];
+            Assert.Equal("_myTypeTag", typeTag);
+        }
+
+        [Fact]
+        public void ATimeSpanSerializesAsStringValue()
+        {
+            string name = Some.String();
+            var value = TimeSpan.FromSeconds(123.45);
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
         }
 
         [Fact]
@@ -372,8 +513,6 @@ namespace Serilog.Extensions.Formatting.Test
                 new List<LogEventProperty> { new LogEventProperty("AProperty", new ScalarValue(12)) }.AsReadOnly());
 
             var d = FormatEvent(e);
-            _output.WriteLine(d.ToString());
-
             var rs = d["Renderings"]?.AsObject() ?? new JsonObject();
             Assert.Single(rs);
             var ap = d["Renderings"]?["AProperty"];
@@ -440,7 +579,8 @@ namespace Serilog.Extensions.Formatting.Test
                 {
                     new LogEventProperty("AProperty", new SequenceValue(new List<LogEventPropertyValue>
                         {
-                            new SequenceValue(new List<LogEventPropertyValue> { new ScalarValue("Hello") }.AsReadOnly()),
+                            new SequenceValue(new List<LogEventPropertyValue>
+                                { new ScalarValue("Hello") }.AsReadOnly()),
                         }
                         .AsReadOnly())),
                 }.AsReadOnly());
@@ -476,6 +616,34 @@ namespace Serilog.Extensions.Formatting.Test
             Assert.Contains($@"""TraceId"":""{traceId}""", formatted);
             Assert.Contains($@"""SpanId"":""{spanId}""", formatted);
         }
+
+#if FEATURE_ISPANFORMATTABLE
+        [Fact]
+        public void AnISpanFormattablePropertySerializesAsStringValue()
+        {
+            string name = Some.String();
+            var value = IPAddress.Parse("fdca:47ef:b356:4234::1");
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
+        }
+
+        [Fact]
+        public void AnISpanFormattableValueTypePropertySerializesAsStringValue()
+        {
+            string name = Some.String();
+            var value = (Half)123.45;
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            var formatted = FormatJson(@event);
+
+            Assert.Equal(value.ToString(CultureInfo.InvariantCulture), (string)formatted["Properties"]?[name]);
+        }
+#endif
     }
 
     internal enum TestEnum

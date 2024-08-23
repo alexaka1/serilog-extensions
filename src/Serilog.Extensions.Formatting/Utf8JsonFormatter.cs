@@ -324,9 +324,12 @@ namespace Serilog.Extensions.Formatting
                             _writer.WriteBooleanValue(b);
                             break;
                         case char c:
-
+// #if NET8_0_OR_GREATER
+//                             _writer.WriteStringValue([c]);
+// #else
+//                         _writer.WriteStringValue(new[] { c });
+// #endif
                             _writer.WriteStringValue(new[] { c });
-
                             break;
                         case DateTime dt:
                             _writer.WriteStringValue(dt);
@@ -401,6 +404,19 @@ namespace Serilog.Extensions.Formatting
                     }
 
                     break;
+#if FEATURE_ISPANFORMATTABLE
+                case ISpanFormattable span:
+                {
+                    Span<char> buffer = stackalloc char[_spanBufferSize * 2];
+                    if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
+                    {
+                        // fallback to string
+                        _writer.WriteStringValue(buffer.Slice(0, written));
+                    }
+
+                    break;
+                }
+#endif
                 default:
                     _writer.WriteStringValue(value.Value?.ToString());
                     break;
