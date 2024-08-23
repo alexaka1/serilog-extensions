@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
   workflow_call:
 permissions: { }
-defaults:
-  run:
-    shell: bash
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -87,6 +84,7 @@ jobs:
           targetdir: ./coverage
           reporttypes: Cobertura;MarkdownSummaryGithub
       - name: Coverage summary
+        shell: bash
         run: |
           cat coverage/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
       - name: Upload Test Report Artifact

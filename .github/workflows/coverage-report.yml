@@ -5,9 +5,6 @@ on:
     types:
       - completed
 permissions: { }
-defaults:
-  run:
-    shell: bash
 jobs:
   report:
     runs-on: ubuntu-latest
@@ -44,6 +41,7 @@ jobs:
           format: markdown
           output: both
       - name: Add platform info
+        shell: bash
         run: |
           echo -e "Platform: \`${{ matrix.os }}\`   \n" >> code-coverage-results-${{ matrix.os }}.md
           cat code-coverage-results.md >> code-coverage-results-${{ matrix.os }}.md
@@ -56,5 +54,6 @@ jobs:
           header: ${{ matrix.os }}
           number: ${{ github.event.workflow_run.pull_requests[0].number }}
       - name: Write coverage summary
+        shell: bash
         run: |
           cat code-coverage-results-${{ matrix.os }}.md >> $GITHUB_STEP_SUMMARY

@@ -82,6 +82,7 @@ jobs:
       - name: Can pack?
         id: pack
         if: steps.changesets.outputs.hasChangesets == 'false'
+        shell: bash
         run: |
           set -e
           VERSION=$(jq -r '.version' "${{ env.PackageJson }}")
@@ -146,6 +147,7 @@ jobs:
         run: dotnet nuget push ${{ github.workspace }}/artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
       - name: Create changelog for release
         id: changelog
+        shell: bash
         run: |
           input_file="${{ env.changelog }}"
           output_file="changes.md"
