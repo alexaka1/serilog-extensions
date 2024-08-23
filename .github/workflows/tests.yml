@@ -115,13 +115,14 @@ jobs:
           badge: true
           format: markdown
           output: both
-#      - name: Add platform info
-#        run: |
-#          echo "Platform: ${{ matrix.os }}" >> code-coverage-results.md
+      - name: Add platform info
+        run: |
+          echo "Platform: ${{ matrix.os }}\n" >> code-coverage-results-${{ matrix.os }}.md
+          cat code-coverage-results.md >> code-coverage-results-${{ matrix.os }}.md
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: code-coverage-results.md
+          path: code-coverage-results-${{ matrix.os }}.md
           header: ${{ matrix.os }}
