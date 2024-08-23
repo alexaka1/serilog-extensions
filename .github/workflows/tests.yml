@@ -69,7 +69,6 @@ jobs:
           --configuration Release
           --no-restore
           --logger "GitHubActions;summary.includeSkippedTests=true"
-          --verbosity normal 
           --collect:"XPlat Code Coverage" 
           --results-directory ./coverage
           --
