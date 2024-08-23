@@ -74,16 +74,9 @@ jobs:
           --results-directory ./coverage
           --
           RunConfiguration.CollectSourceInformation=true
-      - name: Code Coverage Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
+      - name: Upload Test Report Artifact
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
         with:
-          filename: coverage/**/coverage.cobertura.xml
-          badge: true
-          format: markdown
-          output: both
-      - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: code-coverage-results.md
+          name: dotnet-coverage-on-${{ matrix.os }}
+          path: coverage
+          if-no-files-found: 'error'
