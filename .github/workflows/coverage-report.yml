@@ -5,6 +5,9 @@ on:
     types:
       - completed
 permissions: { }
+defaults:
+  run:
+    shell: bash
 jobs:
   report:
     runs-on: ubuntu-latest

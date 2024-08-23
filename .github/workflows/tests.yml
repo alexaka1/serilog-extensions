@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
   workflow_call:
 permissions: { }
+defaults:
+  run:
+    shell: bash
 jobs:
   test:
     name: Tests
@@ -17,6 +20,7 @@ jobs:
           - windows-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
+
     permissions:
       contents: read
     steps:
