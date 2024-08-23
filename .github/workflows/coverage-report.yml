@@ -8,6 +8,12 @@ permissions: { }
 jobs:
   report:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
     permissions:
       contents: read
       actions: read
@@ -23,7 +29,7 @@ jobs:
       - name: Download Coverage Report Artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          pattern:  dotnet-coverage-on-*
+          name: dotnet-coverage-on-${{ matrix.os }}
           path: coverage
           merge-multiple: true
       - name: Code Coverage Report
@@ -33,9 +39,14 @@ jobs:
           badge: true
           format: markdown
           output: both
+      - name: Add platform info
+        run: |
+          echo -e "Platform: \`${{ matrix.os }}\`   \n" >> code-coverage-results-${{ matrix.os }}.md
+          cat code-coverage-results.md >> code-coverage-results-${{ matrix.os }}.md
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
         with:
           recreate: true
-          path: code-coverage-results.md
+          path: code-coverage-results-${{ matrix.os }}.md
+          header: ${{ matrix.os }}
