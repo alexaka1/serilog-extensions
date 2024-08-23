@@ -73,9 +73,16 @@ jobs:
           --results-directory ./coverage
           --
           RunConfiguration.CollectSourceInformation=true
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.3.8
+        with:
+          reports: cobertura.xml
+          targetdir: ./coverage
+          reporttypes: Cobertura
       - name: Upload Test Report Artifact
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
         with:
           name: dotnet-coverage-on-${{ matrix.os }}
-          path: coverage
+          path: |
+            coverage/Cobertura.xml
           if-no-files-found: 'error'
