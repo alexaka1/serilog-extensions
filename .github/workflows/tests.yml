@@ -76,7 +76,7 @@ jobs:
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.8
         with:
-          reports: cobertura.xml
+          reports: ./coverage/**/coverage.cobertura.xml
           targetdir: ./coverage
           reporttypes: Cobertura
       - name: Upload Test Report Artifact
