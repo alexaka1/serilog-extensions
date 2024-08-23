@@ -4,6 +4,7 @@ on:
     workflows: [ 'Tests' ]
     types:
       - completed
+concurrency: coverage-report
 permissions: { }
 jobs:
   report:
