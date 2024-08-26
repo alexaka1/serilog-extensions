@@ -358,7 +358,7 @@ namespace Serilog.Extensions.Formatting
                                     format: TimeSpanFormat))
                             {
                                 // fallback to string
-                                _writer.WriteStringValue(Encoding.UTF8.GetString(buffer.Slice(0, written)));
+                                _writer.WriteStringValue(buffer.Slice(0, written));
                             }
 #elif FEATURE_ISPANFORMATTABLE
                             Span<char> buffer = _spanBuffer;
@@ -416,7 +416,7 @@ namespace Serilog.Extensions.Formatting
                                         format: default))
                                 {
                                     // fallback to string
-                                    _writer.WriteStringValue(Encoding.UTF8.GetString(buffer.Slice(0, written)));
+                                    _writer.WriteStringValue(buffer.Slice(0, written));
                                 }
                             }
 #endif
