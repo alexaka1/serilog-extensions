@@ -25,11 +25,11 @@
     <!--    <None Include="../../assets/icon.png" Pack="true" Visible="false" PackagePath="/" />-->
     <None Include="../../README.md" Pack="true" Visible="false" PackagePath="/"/>
     <None Include="../../LICENSE" Pack="true" Visible="false" PackagePath="/"/>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="System.Text.Json" Version="8.0.4" Condition="$(TargetFramework) == 'netstandard2.0'"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.0.1"/>
+    <PackageReference Include="Serilog"/>
+    <PackageReference Include="System.Text.Json" Condition="$(TargetFramework) == 'netstandard2.0'"/>
   </ItemGroup>
 
 </Project>
