@@ -34,6 +34,12 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_DATE_AND_TIME_ONLY
         private const string DateOnlyFormat = "O";
 #endif
+#if FEATURE_IUTF8SPANFORMATTABLE
+        private readonly byte[] _utf8Buffer;
+#endif
+#if FEATURE_ISPANFORMATTABLE
+        private readonly char[] _spanBuffer;
+#endif
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
         /// <summary>
@@ -85,6 +91,12 @@ namespace Serilog.Extensions.Formatting
                 });
             _sb = new StringBuilder();
             _sw = new StringWriter(_sb);
+#if FEATURE_ISPANFORMATTABLE
+            _spanBuffer = new char[spanBufferSize];
+#endif
+#if FEATURE_IUTF8SPANFORMATTABLE
+            _utf8Buffer = new byte[spanBufferSize];
+#endif
         }
 
         /// <inheritdoc />
@@ -341,7 +353,7 @@ namespace Serilog.Extensions.Formatting
                         case TimeSpan timeSpan:
                         {
 #if FEATURE_IUTF8SPANFORMATTABLE
-                            Span<byte> buffer = stackalloc byte[_spanBufferSize];
+                            Span<byte> buffer = _utf8Buffer;
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                     format: TimeSpanFormat))
                             {
@@ -349,7 +361,7 @@ namespace Serilog.Extensions.Formatting
                                 _writer.WriteStringValue(Encoding.UTF8.GetString(buffer.Slice(0, written)));
                             }
 #elif FEATURE_ISPANFORMATTABLE
-                            Span<char> buffer = stackalloc char[_spanBufferSize];
+                            Span<char> buffer = _spanBuffer;
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                     format: TimeSpanFormat))
                             {
@@ -364,7 +376,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_DATE_AND_TIME_ONLY
                         case DateOnly dateOnly:
                         {
-                            Span<char> buffer = stackalloc char[_spanBufferSize];
+                            Span<char> buffer = _spanBuffer;
                             if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: DateOnlyFormat))
                             {
@@ -375,7 +387,7 @@ namespace Serilog.Extensions.Formatting
                         }
                         case TimeOnly timeOnly:
                         {
-                            Span<char> buffer = stackalloc char[_spanBufferSize];
+                            Span<char> buffer = _spanBuffer;
                             if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: TimeFormat))
                             {
@@ -399,7 +411,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_IUTF8SPANFORMATTABLE
                             else if (vt is IUtf8SpanFormattable utf8Span)
                             {
-                                Span<byte> buffer = stackalloc byte[_spanBufferSize * 2];
+                                Span<byte> buffer = _utf8Buffer;
                                 if (utf8Span.TryFormat(buffer, out int written, provider: _formatProvider,
                                         format: default))
                                 {
@@ -411,7 +423,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_ISPANFORMATTABLE
                             else if (vt is ISpanFormattable span)
                             {
-                                Span<char> buffer = stackalloc char[_spanBufferSize];
+                                Span<char> buffer = _spanBuffer;
                                 if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                                 {
                                     // fallback to string
@@ -428,7 +440,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_IUTF8SPANFORMATTABLE
                 case IUtf8SpanFormattable span:
                 {
-                    Span<byte> buffer = stackalloc byte[_spanBufferSize * 4];
+                    Span<byte> buffer = _utf8Buffer;
                     if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                     {
                         // fallback to string
@@ -441,7 +453,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_ISPANFORMATTABLE
                 case ISpanFormattable span:
                 {
-                    Span<char> buffer = stackalloc char[_spanBufferSize * 2];
+                    Span<char> buffer = _spanBuffer;
                     if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                     {
                         // fallback to string
