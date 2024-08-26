@@ -627,7 +627,18 @@ namespace Serilog.Extensions.Formatting.Test
             @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
 
             var formatted = FormatJson(@event);
+            Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
+        }
 
+        [Fact]
+        public void AnISpanFormattablePropertySerializesAsStringValueNet6()
+        {
+            string name = Some.String();
+            var value = Version.Parse("1.2.3.4");
+            var @event = Some.InformationEvent();
+            @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
+
+            var formatted = FormatJson(@event);
             Assert.Equal(value.ToString(), (string)formatted["Properties"]?[name]);
         }
 
