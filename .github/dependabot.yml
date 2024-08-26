@@ -5,16 +5,6 @@ updates:
     schedule:
       interval: daily
 
-  - package-ecosystem: nuget
-    directory: /test/Serilog.Extensions.Formatting.Benchmark
-    schedule:
-      interval: daily
-
-  - package-ecosystem: nuget
-    directory: /test/Serilog.Extensions.Formatting.Test
-    schedule:
-      interval: daily
-
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -22,11 +12,6 @@ updates:
 
   - package-ecosystem: npm
     directory: /
-    schedule:
-      interval: daily
-
-  - package-ecosystem: nuget
-    directory: /src/Serilog.Extensions.Formatting
     schedule:
       interval: daily
 
