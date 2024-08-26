@@ -1,5 +1,13 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.3.0
+
+### Minor Changes
+
+- db2c006: Add netstandard2.0 support
+- ee9314c: Add IUtf8SpanFormattable support as fallback option
+- db2c006: Added .NET 6 support
+
 ## 0.2.1
 
 ### Patch Changes
