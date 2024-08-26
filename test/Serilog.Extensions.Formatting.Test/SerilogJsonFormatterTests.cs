@@ -634,7 +634,7 @@ namespace Serilog.Extensions.Formatting.Test
         public void AnISpanFormattablePropertySerializesAsStringValueNet6()
         {
             string name = Some.String();
-            var value = Version.Parse("1.2.3.4");
+            var value = new Uri("https://www.google.com");
             var @event = Some.InformationEvent();
             @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
 

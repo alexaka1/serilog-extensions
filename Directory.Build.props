@@ -31,6 +31,6 @@
     <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-    <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;FEATURE_JSON_NAMING_POLICY;</DefineConstants>
+    <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;FEATURE_JSON_NAMING_POLICY;FEATURE_IUTF8SPANFORMATTABLE;</DefineConstants>
   </PropertyGroup>
 </Project>

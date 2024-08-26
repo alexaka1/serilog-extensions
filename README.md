@@ -4,7 +4,7 @@
 
 ## Utf8JsonFormatter
 
-A simple JSON formatter for Serilog that uses the `System.Text.Json.Utf8JsonWriter` to write the log events to the output stream.
+A simple JSON formatter for Serilog that uses the `System.Text.Json.Utf8JsonWriter` to write the log events to the output stream. As the name suggests, it is entirely built around UTF-8, with all the [.NET optimizations for UTF-8](https://github.com/dotnet/runtime/issues/81500), so using other encodings will most likely result in invalid characters. The default for the File sink is UTF-8.
 
 ### Usage
 
