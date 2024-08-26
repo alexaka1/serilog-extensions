@@ -30,6 +30,7 @@ namespace Serilog.Extensions.Formatting
         private readonly StringWriter _sw;
         private readonly Utf8JsonWriter _writer;
         private const string TimeFormat = "O";
+        private const string TimeSpanFormat = "c";
 #if FEATURE_DATE_AND_TIME_ONLY
         private const string DateOnlyFormat = "O";
 #endif
@@ -342,7 +343,7 @@ namespace Serilog.Extensions.Formatting
 #if FEATURE_IUTF8SPANFORMATTABLE
                             Span<byte> buffer = stackalloc byte[_spanBufferSize];
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
-                                    format: default))
+                                    format: TimeSpanFormat))
                             {
                                 // fallback to string
                                 _writer.WriteStringValue(Encoding.UTF8.GetString(buffer.Slice(0, written)));
@@ -350,12 +351,12 @@ namespace Serilog.Extensions.Formatting
 #elif FEATURE_ISPANFORMATTABLE
                             Span<char> buffer = stackalloc char[_spanBufferSize];
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
-                                    format: "c"))
+                                    format: TimeSpanFormat))
                             {
                                 _writer.WriteStringValue(buffer.Slice(0, written));
                             }
 #else
-                            _writer.WriteStringValue(timeSpan.ToString("c", _formatProvider));
+                            _writer.WriteStringValue(timeSpan.ToString(TimeSpanFormat, _formatProvider));
 #endif
 
                             break;
