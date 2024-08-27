@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Parsing;
@@ -16,19 +15,17 @@ namespace Serilog.Extensions.Formatting
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
     /// </summary>
-    public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
+    public class Utf8JsonFormatter : ITextFormatter
     {
         private readonly string _closingDelimiter;
         private readonly CultureInfo _formatProvider;
+        private readonly JsonWriterOptions _jsonWriterOptions;
         private readonly JsonLogPropertyNames _names;
         private readonly JsonNamingPolicy _namingPolicy;
         private readonly bool _renderMessage;
-        private readonly StringBuilder _sb;
 
         // ReSharper disable once NotAccessedField.Local
         private readonly int _spanBufferSize;
-        private readonly StringWriter _sw;
-        private readonly Utf8JsonWriter _writer;
         private const string TimeFormat = "O";
         private const string TimeSpanFormat = "c";
 #if FEATURE_DATE_AND_TIME_ONLY
@@ -77,30 +74,12 @@ namespace Serilog.Extensions.Formatting
             _spanBufferSize = spanBufferSize;
             _closingDelimiter = closingDelimiter ?? Environment.NewLine;
             _formatProvider = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
-            _writer = new Utf8JsonWriter(Stream.Null,
-                new JsonWriterOptions
-                {
-                    SkipValidation = skipValidation,
-                    Encoder = jsonWriterEncoder,
-                });
-            _sb = new StringBuilder();
-            _sw = new StringWriter(_sb);
+            _jsonWriterOptions = new JsonWriterOptions
+            {
+                SkipValidation = skipValidation,
+                Encoder = jsonWriterEncoder,
+            };
         }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc />
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsyncCore();
-            GC.SuppressFinalize(this);
-        }
-
 
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">When <paramref name="logEvent" /> is <c>null</c></exception>
@@ -127,43 +106,43 @@ namespace Serilog.Extensions.Formatting
                 str = new MemoryStream();
             }
 
-            ResetWriter(str);
+            var writer = GetWriter(str);
 
-            _writer.WriteStartObject();
-            _writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
-            _writer.WriteString(_names.Level, Enum.GetName(typeof(LogEventLevel), logEvent.Level));
-            _writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
+            writer.WriteStartObject();
+            writer.WriteString(_names.Timestamp, logEvent.Timestamp.ToString(TimeFormat, _formatProvider));
+            writer.WriteString(_names.Level, Enum.GetName(typeof(LogEventLevel), logEvent.Level));
+            writer.WriteString(_names.MessageTemplate, logEvent.MessageTemplate.Text);
             if (_renderMessage)
             {
-                _writer.WriteString(_names.RenderedMessage,
+                writer.WriteString(_names.RenderedMessage,
                     logEvent.MessageTemplate.Render(logEvent.Properties, _formatProvider));
             }
 
             if (logEvent.TraceId.HasValue)
             {
-                _writer.WriteString(_names.TraceId, logEvent.TraceId.Value.ToString());
+                writer.WriteString(_names.TraceId, logEvent.TraceId.Value.ToString());
             }
 
             if (logEvent.SpanId.HasValue)
             {
-                _writer.WriteString(_names.SpanId, logEvent.SpanId.Value.ToString());
+                writer.WriteString(_names.SpanId, logEvent.SpanId.Value.ToString());
             }
 
             if (logEvent.Exception != null)
             {
-                _writer.WriteString(_names.Exception, logEvent.Exception.ToString());
+                writer.WriteString(_names.Exception, logEvent.Exception.ToString());
             }
 
             if (logEvent.Properties.Count != 0)
             {
-                _writer.WriteStartObject(_names.Properties);
+                writer.WriteStartObject(_names.Properties);
                 foreach (var property in logEvent.Properties)
                 {
-                    _writer.WritePropertyName(_namingPolicy.ConvertName(property.Key));
-                    Format(property.Value);
+                    writer.WritePropertyName(_namingPolicy.ConvertName(property.Key));
+                    Format(property.Value, writer);
                 }
 
-                _writer.WriteEndObject();
+                writer.WriteEndObject();
             }
 
 
@@ -175,13 +154,14 @@ namespace Serilog.Extensions.Formatting
 
             if (tokensWithFormat.Length != 0)
             {
-                _writer.WriteStartObject(_names.Renderings);
-                WriteRenderingsObject(tokensWithFormat, logEvent.Properties);
-                _writer.WriteEndObject();
+                writer.WriteStartObject(_names.Renderings);
+
+                WriteRenderingsObject(tokensWithFormat, logEvent.Properties, writer);
+                writer.WriteEndObject();
             }
 
-            _writer.WriteEndObject();
-            _writer.Flush();
+            writer.WriteEndObject();
+            writer.Flush();
             if (!(output is StreamWriter) && str is MemoryStream mem)
             {
                 // if we used memory stream, we wrote to the memory stream, so we need to write to the output manually
@@ -203,12 +183,12 @@ namespace Serilog.Extensions.Formatting
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <returns>The <see cref="Utf8JsonWriter" /> instance.</returns>
-        private void ResetWriter(Stream stream)
+        private Utf8JsonWriter GetWriter(Stream stream)
         {
-            _writer.Reset(stream);
+            return new Utf8JsonWriter(stream, _jsonWriterOptions);
         }
 
-        private void Format<TState>(TState value) where TState : class
+        private void Format<TState>(TState value, Utf8JsonWriter writer) where TState : class
         {
             if (value == null)
             {
@@ -218,111 +198,111 @@ namespace Serilog.Extensions.Formatting
             switch (value)
             {
                 case ScalarValue scalarValue:
-                    VisitScalarValue(scalarValue);
+                    VisitScalarValue(scalarValue, writer);
                     return;
                 case SequenceValue sequenceValue:
-                    VisitSequenceValue(sequenceValue);
+                    VisitSequenceValue(sequenceValue, writer);
                     return;
                 case StructureValue structureValue:
-                    VisitStructureValue(structureValue);
+                    VisitStructureValue(structureValue, writer);
                     return;
                 case DictionaryValue dictionaryValue:
-                    VisitDictionaryValue(dictionaryValue);
+                    VisitDictionaryValue(dictionaryValue, writer);
                     return;
                 default:
                     throw new NotSupportedException($"The value {value} is not of a type supported by this visitor.");
             }
         }
 
-        private void VisitDictionaryValue(DictionaryValue dictionary)
+        private void VisitDictionaryValue(DictionaryValue dictionary, Utf8JsonWriter writer)
         {
-            _writer.WriteStartObject();
+            writer.WriteStartObject();
             foreach (var element in dictionary.Elements)
             {
                 string key = element.Key.Value?.ToString();
-                _writer.WritePropertyName(key != null ? _namingPolicy.ConvertName(key) : _names.Null);
-                Format(element.Value);
+                writer.WritePropertyName(key != null ? _namingPolicy.ConvertName(key) : _names.Null);
+                Format(element.Value, writer);
             }
 
-            _writer.WriteEndObject();
+            writer.WriteEndObject();
         }
 
-        private void VisitStructureValue(StructureValue structure)
+        private void VisitStructureValue(StructureValue structure, Utf8JsonWriter writer)
         {
-            _writer.WriteStartObject();
+            writer.WriteStartObject();
             foreach (var property in structure.Properties)
             {
-                _writer.WritePropertyName(_namingPolicy.ConvertName(property.Name));
-                Format(property.Value);
+                writer.WritePropertyName(_namingPolicy.ConvertName(property.Name));
+                Format(property.Value, writer);
             }
 
             if (structure.TypeTag != null)
             {
-                _writer.WriteString(_names.TypeTag, structure.TypeTag);
+                writer.WriteString(_names.TypeTag, structure.TypeTag);
             }
 
-            _writer.WriteEndObject();
+            writer.WriteEndObject();
         }
 
-        private void VisitSequenceValue(SequenceValue sequence)
+        private void VisitSequenceValue(SequenceValue sequence, Utf8JsonWriter writer)
         {
-            _writer.WriteStartArray();
+            writer.WriteStartArray();
             foreach (var element in sequence.Elements)
             {
-                Format(element);
+                Format(element, writer);
             }
 
-            _writer.WriteEndArray();
+            writer.WriteEndArray();
         }
 
-        private void VisitScalarValue(ScalarValue value)
+        private void VisitScalarValue(ScalarValue value, Utf8JsonWriter writer)
         {
             switch (value.Value)
             {
                 case null:
-                    _writer.WriteNullValue();
+                    writer.WriteNullValue();
                     break;
                 case string str:
-                    _writer.WriteStringValue(str);
+                    writer.WriteStringValue(str);
                     break;
                 case ValueType vt:
                     switch (vt)
                     {
                         case int i:
-                            _writer.WriteNumberValue(i);
+                            writer.WriteNumberValue(i);
                             break;
                         case uint ui:
-                            _writer.WriteNumberValue(ui);
+                            writer.WriteNumberValue(ui);
                             break;
                         case long l:
-                            _writer.WriteNumberValue(l);
+                            writer.WriteNumberValue(l);
                             break;
                         case ulong ul:
-                            _writer.WriteNumberValue(ul);
+                            writer.WriteNumberValue(ul);
                             break;
                         case decimal dc:
-                            _writer.WriteNumberValue(dc);
+                            writer.WriteNumberValue(dc);
                             break;
                         case byte bt:
-                            _writer.WriteNumberValue(bt);
+                            writer.WriteNumberValue(bt);
                             break;
                         case sbyte sb:
-                            _writer.WriteNumberValue(sb);
+                            writer.WriteNumberValue(sb);
                             break;
                         case short s:
-                            _writer.WriteNumberValue(s);
+                            writer.WriteNumberValue(s);
                             break;
                         case ushort us:
-                            _writer.WriteNumberValue(us);
+                            writer.WriteNumberValue(us);
                             break;
                         case double d:
-                            _writer.WriteNumberValue(d);
+                            writer.WriteNumberValue(d);
                             break;
                         case float f:
-                            _writer.WriteNumberValue(f);
+                            writer.WriteNumberValue(f);
                             break;
                         case bool b:
-                            _writer.WriteBooleanValue(b);
+                            writer.WriteBooleanValue(b);
                             break;
                         case char c:
 // #if NET8_0_OR_GREATER
@@ -330,13 +310,13 @@ namespace Serilog.Extensions.Formatting
 // #else
 //                         _writer.WriteStringValue(new[] { c });
 // #endif
-                            _writer.WriteStringValue(new[] { c });
+                            writer.WriteStringValue(new[] { c });
                             break;
                         case DateTime dt:
-                            _writer.WriteStringValue(dt);
+                            writer.WriteStringValue(dt);
                             break;
                         case DateTimeOffset dto:
-                            _writer.WriteStringValue(dto);
+                            writer.WriteStringValue(dto);
                             break;
                         case TimeSpan timeSpan:
                         {
@@ -346,17 +326,17 @@ namespace Serilog.Extensions.Formatting
                                     format: TimeSpanFormat))
                             {
                                 // fallback to string
-                                _writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer.Slice(0, written));
                             }
 #elif FEATURE_ISPANFORMATTABLE
                             Span<char> buffer = stackalloc char[_spanBufferSize];
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                     format: TimeSpanFormat))
                             {
-                                _writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer.Slice(0, written));
                             }
 #else
-                            _writer.WriteStringValue(timeSpan.ToString(TimeSpanFormat, _formatProvider));
+                            writer.WriteStringValue(timeSpan.ToString(TimeSpanFormat, _formatProvider));
 #endif
 
                             break;
@@ -368,7 +348,7 @@ namespace Serilog.Extensions.Formatting
                             if (dateOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: DateOnlyFormat))
                             {
-                                _writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer.Slice(0, written));
                             }
 
                             break;
@@ -379,7 +359,7 @@ namespace Serilog.Extensions.Formatting
                             if (timeOnly.TryFormat(buffer, out int written, provider: _formatProvider,
                                     format: TimeFormat))
                             {
-                                _writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer.Slice(0, written));
                             }
 
                             break;
@@ -387,14 +367,14 @@ namespace Serilog.Extensions.Formatting
 #endif
                         case Guid guid:
                         {
-                            _writer.WriteStringValue(guid);
+                            writer.WriteStringValue(guid);
                             break;
                         }
                         default:
                         {
                             if (vt.GetType().IsEnum)
                             {
-                                _writer.WriteStringValue(vt.ToString());
+                                writer.WriteStringValue(vt.ToString());
                             }
 #if FEATURE_IUTF8SPANFORMATTABLE
                             else if (vt is IUtf8SpanFormattable utf8Span)
@@ -404,7 +384,7 @@ namespace Serilog.Extensions.Formatting
                                         format: default))
                                 {
                                     // fallback to string
-                                    _writer.WriteStringValue(buffer.Slice(0, written));
+                                    writer.WriteStringValue(buffer.Slice(0, written));
                                 }
                             }
 #endif
@@ -415,7 +395,7 @@ namespace Serilog.Extensions.Formatting
                                 if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                                 {
                                     // fallback to string
-                                    _writer.WriteStringValue(buffer.Slice(0, written));
+                                    writer.WriteStringValue(buffer.Slice(0, written));
                                 }
                             }
 #endif
@@ -432,7 +412,7 @@ namespace Serilog.Extensions.Formatting
                     if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                     {
                         // fallback to string
-                        _writer.WriteStringValue(buffer.Slice(0, written));
+                        writer.WriteStringValue(buffer.Slice(0, written));
                     }
 
                     break;
@@ -445,75 +425,78 @@ namespace Serilog.Extensions.Formatting
                     if (span.TryFormat(buffer, out int written, provider: _formatProvider, format: default))
                     {
                         // fallback to string
-                        _writer.WriteStringValue(buffer.Slice(0, written));
+                        writer.WriteStringValue(buffer.Slice(0, written));
                     }
 
                     break;
                 }
 #endif
                 default:
-                    _writer.WriteStringValue(value.Value?.ToString());
+                    writer.WriteStringValue(value.Value?.ToString());
                     break;
             }
         }
 
         private void WriteRenderingsObject(ReadOnlySpan<IGrouping<string, PropertyToken>> tokensWithFormat,
-            IReadOnlyDictionary<string, LogEventPropertyValue> properties)
+            IReadOnlyDictionary<string, LogEventPropertyValue> properties, Utf8JsonWriter writer)
         {
-            foreach (var propertyFormats in tokensWithFormat)
+            var sb = new StringBuilder();
+            using (var sw = new StringWriter(sb))
             {
-                _writer.WriteStartArray(propertyFormats.Key);
-                foreach (var format in propertyFormats)
+                foreach (var propertyFormats in tokensWithFormat)
                 {
-                    _writer.WriteStartObject();
-                    _writer.WriteString(_names.Format, format.Format);
-                    _writer.WritePropertyName(_names.Rendering);
-                    RenderPropertyToken(format, properties);
-                    _writer.WriteEndObject();
-                }
+                    writer.WriteStartArray(propertyFormats.Key);
+                    foreach (var format in propertyFormats)
+                    {
+                        writer.WriteStartObject();
+                        writer.WriteString(_names.Format, format.Format);
+                        writer.WritePropertyName(_names.Rendering);
+                        RenderPropertyToken(format, properties, new RenderProps(writer, sw));
+                        sb.Clear();
+                        writer.WriteEndObject();
+                    }
 
-                _writer.WriteEndArray();
+                    writer.WriteEndArray();
+                }
             }
         }
 
         private void RenderPropertyToken(PropertyToken pt,
-            IReadOnlyDictionary<string, LogEventPropertyValue> properties)
+            IReadOnlyDictionary<string, LogEventPropertyValue> properties, RenderProps writer)
         {
             if (!properties.TryGetValue(pt.PropertyName, out var propertyValue))
             {
-                _writer.WriteStringValue(pt.ToString());
+                writer.Utf8JsonWriter.WriteStringValue(pt.ToString());
                 return;
             }
 
-            RenderValue(propertyValue, pt.Format);
+            RenderValue(propertyValue, pt.Format, writer);
         }
 
         private void RenderValue(LogEventPropertyValue propertyValue,
-            string format)
+            string format, RenderProps writer)
         {
             var value = propertyValue as ScalarValue;
             if (value?.Value is string str)
             {
-                _writer.WriteStringValue(str);
+                writer.Utf8JsonWriter.WriteStringValue(str);
                 return;
             }
 
-            propertyValue.Render(_sw, format, _formatProvider);
-            _writer.WriteStringValue(_sw.ToString());
-            _sb.Clear();
+            propertyValue.Render(writer.StringWriter, format, _formatProvider);
+            writer.Utf8JsonWriter.WriteStringValue(writer.StringWriter.ToString());
         }
+    }
 
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _writer.Dispose();
-            }
-        }
+    internal struct RenderProps
+    {
+        public Utf8JsonWriter Utf8JsonWriter { get; }
+        public StringWriter StringWriter { get; }
 
-        private async ValueTask DisposeAsyncCore()
+        public RenderProps(Utf8JsonWriter utf8JsonWriter, StringWriter stringWriter)
         {
-            await _writer.DisposeAsync();
+            Utf8JsonWriter = utf8JsonWriter;
+            StringWriter = stringWriter;
         }
     }
 }
