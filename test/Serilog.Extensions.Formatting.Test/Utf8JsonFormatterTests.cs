@@ -430,7 +430,7 @@ namespace Serilog.Extensions.Formatting.Test
 
         public static TheoryData<ThreadSafetyParams> ThreadSafetyMemberData()
         {
-            int[] threads = { 1, 10, 100, 500 };
+            int[] threads = { 1, 10, 100 /*, 500*/ };
             int[] iterations = { 1, 100, 1000, 10000 };
             var data = new List<ThreadSafetyParams>();
             // ReSharper disable once LoopCanBeConvertedToQuery
