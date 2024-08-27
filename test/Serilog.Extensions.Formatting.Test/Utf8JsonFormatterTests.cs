@@ -234,6 +234,26 @@ namespace Serilog.Extensions.Formatting.Test
         }
 
         [Fact]
+        public async Task UseAfterDisposeAsyncShouldThrow()
+        {
+            var formatter = new Utf8JsonFormatter();
+            // init lazy resources
+            formatter.Format(Some.LogEvent(), new StringWriter());
+            await formatter.DisposeAsync();
+            Assert.Throws<ObjectDisposedException>(() => formatter.Format(Some.LogEvent(), new StringWriter()));
+        }
+
+        [Fact]
+        public void UseAfterDisposeShouldThrow()
+        {
+            var formatter = new Utf8JsonFormatter();
+            // init lazy resources
+            formatter.Format(Some.LogEvent(), new StringWriter());
+            formatter.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => formatter.Format(Some.LogEvent(), new StringWriter()));
+        }
+
+        [Fact]
         public void WithException()
         {
             var formatter =
