@@ -123,6 +123,83 @@ namespace Serilog.Extensions.Formatting.Test
             };
         }
 
+        [Theory]
+        [MemberData(nameof(ThreadSafetyMemberData))]
+        public async Task IsThreadSafe(ThreadSafetyParams @params)
+        {
+            var stringWriter = new StringWriter();
+            var logEvent = new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
+                new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
+                new List<LogEventProperty> { new LogEventProperty("hello", new ScalarValue("world")) }
+                    .AsReadOnly(),
+                ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
+                ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan()));
+            @params.Formatter.Format(logEvent, stringWriter);
+            await stringWriter.FlushAsync();
+            string expected = stringWriter.ToString();
+
+            var startSignal = new ManualResetEvent(false);
+
+            string[] results = new string[@params.Threads];
+
+            var tasks = new Task[@params.Threads];
+            for (int i = 0; i < @params.Threads; i++)
+            {
+                int taskIndex = i;
+                tasks[taskIndex] = Task.Run(() =>
+                {
+                    // Wait until the signal is given to start
+                    startSignal.WaitOne();
+                    var writer = new StringWriter();
+
+                    for (int j = 0; j < @params.Iterations; j++)
+                    {
+                        @params.Formatter.Format(logEvent, writer);
+                    }
+
+                    // Call the Format method
+                    results[taskIndex] = writer.ToString();
+                });
+            }
+
+            // Start all tasks at once
+            startSignal.Set();
+            string expectedMerged = string.Join("", Enumerable.Repeat(expected, @params.Iterations));
+
+            // Wait for all tasks to complete
+            await Task.WhenAll(tasks);
+
+            // Assert that all results are the same as expected output
+            for (int i = 0; i < @params.Threads; i++)
+            {
+                Assert.Equal(expectedMerged, results[i]);
+            }
+        }
+
+        public static TheoryData<ThreadSafetyParams> ThreadSafetyMemberData()
+        {
+            int[] threads = { 1, 10, 100 /*, 500*/ };
+            int[] iterations = { 1, 100, 1000, 10000 };
+            var data = new List<ThreadSafetyParams>();
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (int thread in threads)
+            {
+                // ReSharper disable once LoopCanBeConvertedToQuery
+                foreach (int iteration in iterations)
+                {
+                    data.Add(new ThreadSafetyParams(new Utf8JsonFormatter("\n"), iteration, thread));
+                    // the Serilog formatters are thread safe, uncomment if you want to test them
+                    // data.Add(new ThreadSafetyData(new JsonFormatter("\n"), iteration, thread));
+                    // data.Add(new ThreadSafetyData(
+                    //     new ExpressionTemplate(
+                    //         "{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p} }\n"),
+                    //     iteration, thread));
+                }
+            }
+
+            return new TheoryData<ThreadSafetyParams>(data);
+        }
+
         [Fact]
         public void CamelCase()
         {
@@ -395,82 +472,6 @@ namespace Serilog.Extensions.Formatting.Test
             }
         }
 #endif
-        [Theory]
-        [MemberData(nameof(ThreadSafetyMemberData))]
-        public async Task IsThreadSafe(ThreadSafetyParams @params)
-        {
-            var stringWriter = new StringWriter();
-            var logEvent = new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-                new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
-                new List<LogEventProperty> { new LogEventProperty("hello", new ScalarValue("world")) }
-                    .AsReadOnly(),
-                ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
-                ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan()));
-            @params.Formatter.Format(logEvent, stringWriter);
-            await stringWriter.FlushAsync();
-            string expected = stringWriter.ToString();
-
-            var startSignal = new ManualResetEvent(false);
-
-            string[] results = new string[@params.Threads];
-
-            var tasks = new Task[@params.Threads];
-            for (int i = 0; i < @params.Threads; i++)
-            {
-                int taskIndex = i;
-                tasks[taskIndex] = Task.Run(() =>
-                {
-                    // Wait until the signal is given to start
-                    startSignal.WaitOne();
-                    var writer = new StringWriter();
-
-                    for (int j = 0; j < @params.Iterations; j++)
-                    {
-                        @params.Formatter.Format(logEvent, writer);
-                    }
-
-                    // Call the Format method
-                    results[taskIndex] = writer.ToString();
-                });
-            }
-
-            // Start all tasks at once
-            startSignal.Set();
-            string expectedMerged = string.Join("", Enumerable.Repeat(expected, @params.Iterations));
-
-            // Wait for all tasks to complete
-            await Task.WhenAll(tasks);
-
-            // Assert that all results are the same as expected output
-            for (int i = 0; i < @params.Threads; i++)
-            {
-                Assert.Equal(expectedMerged, results[i]);
-            }
-        }
-
-        public static TheoryData<ThreadSafetyParams> ThreadSafetyMemberData()
-        {
-            int[] threads = { 1, 10, 100 /*, 500*/ };
-            int[] iterations = { 1, 100, 1000, 10000 };
-            var data = new List<ThreadSafetyParams>();
-            // ReSharper disable once LoopCanBeConvertedToQuery
-            foreach (int thread in threads)
-            {
-                // ReSharper disable once LoopCanBeConvertedToQuery
-                foreach (int iteration in iterations)
-                {
-                    data.Add(new ThreadSafetyParams(new Utf8JsonFormatter("\n"), iteration, thread));
-                    // the Serilog formatters are thread safe, uncomment if you want to test them
-                    // data.Add(new ThreadSafetyData(new JsonFormatter("\n"), iteration, thread));
-                    // data.Add(new ThreadSafetyData(
-                    //     new ExpressionTemplate(
-                    //         "{ {Timestamp:@t,Level:@l,MessageTemplate:@mt,RenderedMessage:@m,TraceId:@tr,SpanId:@sp,Exception:@x,Properties:@p} }\n"),
-                    //     iteration, thread));
-                }
-            }
-
-            return new TheoryData<ThreadSafetyParams>(data);
-        }
     }
 
     [Serializable]
