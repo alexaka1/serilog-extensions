@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Parsing;
@@ -15,17 +17,19 @@ namespace Serilog.Extensions.Formatting
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
     /// </summary>
-    public class Utf8JsonFormatter : ITextFormatter
+    public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
     {
         private readonly string _closingDelimiter;
         private readonly CultureInfo _formatProvider;
-        private readonly JsonWriterOptions _jsonWriterOptions;
         private readonly JsonLogPropertyNames _names;
         private readonly JsonNamingPolicy _namingPolicy;
         private readonly bool _renderMessage;
+        private readonly ThreadLocal<Utf8JsonWriter> _writer;
 
         // ReSharper disable once NotAccessedField.Local
         private readonly int _spanBufferSize;
+        private readonly ThreadLocal<StringWriter> _sw;
+        private readonly ThreadLocal<StringBuilder> _sb;
         private const string TimeFormat = "O";
         private const string TimeSpanFormat = "c";
 #if FEATURE_DATE_AND_TIME_ONLY
@@ -74,11 +78,28 @@ namespace Serilog.Extensions.Formatting
             _spanBufferSize = spanBufferSize;
             _closingDelimiter = closingDelimiter ?? Environment.NewLine;
             _formatProvider = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
-            _jsonWriterOptions = new JsonWriterOptions
+            var jsonWriterOptions = new JsonWriterOptions
             {
                 SkipValidation = skipValidation,
                 Encoder = jsonWriterEncoder,
             };
+            _writer = new ThreadLocal<Utf8JsonWriter>(() => new Utf8JsonWriter(Stream.Null, jsonWriterOptions), true);
+            _sb = new ThreadLocal<StringBuilder>(() => new StringBuilder(), false);
+            _sw = new ThreadLocal<StringWriter>(() => new StringWriter(_sb.Value), true);
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc />
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore();
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
@@ -185,7 +206,8 @@ namespace Serilog.Extensions.Formatting
         /// <returns>The <see cref="Utf8JsonWriter" /> instance.</returns>
         private Utf8JsonWriter GetWriter(Stream stream)
         {
-            return new Utf8JsonWriter(stream, _jsonWriterOptions);
+            _writer.Value.Reset(stream);
+            return _writer.Value;
         }
 
         private void Format<TState>(TState value, Utf8JsonWriter writer) where TState : class
@@ -483,8 +505,40 @@ namespace Serilog.Extensions.Formatting
                 return;
             }
 
-            propertyValue.Render(writer.StringWriter, format, _formatProvider);
-            writer.Utf8JsonWriter.WriteStringValue(writer.StringWriter.ToString());
+            propertyValue.Render(_sw.Value, format, _formatProvider);
+            writer.Utf8JsonWriter.WriteStringValue(_sw.Value.ToString());
+            _sb.Value.Clear();
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                return;
+            }
+
+            foreach (var writer in _writer.Values)
+            {
+                writer.Dispose();
+            }
+
+            foreach (var stringWriter in _sw.Values)
+            {
+                stringWriter.Dispose();
+            }
+        }
+
+        private async ValueTask DisposeAsyncCore()
+        {
+            foreach (var stringWriter in _sw.Values)
+            {
+                stringWriter.Dispose();
+            }
+
+            foreach (var writer in _writer.Values)
+            {
+                await writer.DisposeAsync();
+            }
         }
     }
 
