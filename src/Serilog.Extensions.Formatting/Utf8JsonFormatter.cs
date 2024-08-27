@@ -462,33 +462,28 @@ namespace Serilog.Extensions.Formatting
         private void WriteRenderingsObject(ReadOnlySpan<IGrouping<string, PropertyToken>> tokensWithFormat,
             IReadOnlyDictionary<string, LogEventPropertyValue> properties, Utf8JsonWriter writer)
         {
-            var sb = new StringBuilder();
-            using (var sw = new StringWriter(sb))
+            foreach (var propertyFormats in tokensWithFormat)
             {
-                foreach (var propertyFormats in tokensWithFormat)
+                writer.WriteStartArray(propertyFormats.Key);
+                foreach (var format in propertyFormats)
                 {
-                    writer.WriteStartArray(propertyFormats.Key);
-                    foreach (var format in propertyFormats)
-                    {
-                        writer.WriteStartObject();
-                        writer.WriteString(_names.Format, format.Format);
-                        writer.WritePropertyName(_names.Rendering);
-                        RenderPropertyToken(format, properties, new RenderProps(writer, sw));
-                        sb.Clear();
-                        writer.WriteEndObject();
-                    }
-
-                    writer.WriteEndArray();
+                    writer.WriteStartObject();
+                    writer.WriteString(_names.Format, format.Format);
+                    writer.WritePropertyName(_names.Rendering);
+                    RenderPropertyToken(format, properties, writer);
+                    writer.WriteEndObject();
                 }
+
+                writer.WriteEndArray();
             }
         }
 
         private void RenderPropertyToken(PropertyToken pt,
-            IReadOnlyDictionary<string, LogEventPropertyValue> properties, RenderProps writer)
+            IReadOnlyDictionary<string, LogEventPropertyValue> properties, Utf8JsonWriter writer)
         {
             if (!properties.TryGetValue(pt.PropertyName, out var propertyValue))
             {
-                writer.Utf8JsonWriter.WriteStringValue(pt.ToString());
+                writer.WriteStringValue(pt.ToString());
                 return;
             }
 
@@ -496,17 +491,17 @@ namespace Serilog.Extensions.Formatting
         }
 
         private void RenderValue(LogEventPropertyValue propertyValue,
-            string format, RenderProps writer)
+            string format, Utf8JsonWriter writer)
         {
             var value = propertyValue as ScalarValue;
             if (value?.Value is string str)
             {
-                writer.Utf8JsonWriter.WriteStringValue(str);
+                writer.WriteStringValue(str);
                 return;
             }
 
             propertyValue.Render(_sw.Value, format, _formatProvider);
-            writer.Utf8JsonWriter.WriteStringValue(_sw.Value.ToString());
+            writer.WriteStringValue(_sw.Value.ToString());
             _sb.Value.Clear();
         }
 
