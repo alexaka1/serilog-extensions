@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.4.0
+
+### Minor Changes
+
+- 219443c: Fixed Utf8JsonFormatter thread safety. The formatter is now threadsafe, as it holds no state that can produce a race condition, at the cost of performance.
+
 ## 0.3.0
 
 ### Minor Changes
