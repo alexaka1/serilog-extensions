@@ -25,6 +25,7 @@ namespace Serilog.Extensions.Formatting
         private readonly JsonNamingPolicy _namingPolicy;
         private readonly bool _renderMessage;
         private readonly ThreadLocal<Utf8JsonWriter> _writer;
+        private Utf8JsonWriter Writer => _writer.Value;
 
         // ReSharper disable once NotAccessedField.Local
         private readonly int _spanBufferSize;
@@ -206,8 +207,8 @@ namespace Serilog.Extensions.Formatting
         /// <returns>The <see cref="Utf8JsonWriter" /> instance.</returns>
         private Utf8JsonWriter GetWriter(Stream stream)
         {
-            _writer.Value.Reset(stream);
-            return _writer.Value;
+            Writer.Reset(stream);
+            return Writer;
         }
 
         private void Format<TState>(TState value, Utf8JsonWriter writer) where TState : class
