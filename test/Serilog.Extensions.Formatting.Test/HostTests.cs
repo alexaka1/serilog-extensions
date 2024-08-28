@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Serilog.Extensions.Formatting.Test
 {
-    public sealed class HostTests
+    public sealed class HostTests : IDisposable
     {
         private readonly ITestOutputHelper _output;
 
@@ -153,6 +153,11 @@ namespace Serilog.Extensions.Formatting.Test
                 Threads = threads;
                 FilePath = filePath;
             }
+        }
+
+        public void Dispose()
+        {
+            SelfLog.Disable();
         }
     }
 }
