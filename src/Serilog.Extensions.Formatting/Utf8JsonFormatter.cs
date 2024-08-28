@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Parsing;
@@ -24,13 +23,13 @@ namespace Serilog.Extensions.Formatting
         private readonly JsonLogPropertyNames _names;
         private readonly JsonNamingPolicy _namingPolicy;
         private readonly bool _renderMessage;
-        private readonly ThreadLocal<Utf8JsonWriter> _writer;
-        private Utf8JsonWriter Writer => _writer.Value;
+        private readonly ThreadLocal<StringBuilder> _sb;
 
         // ReSharper disable once NotAccessedField.Local
         private readonly int _spanBufferSize;
         private readonly ThreadLocal<StringWriter> _sw;
-        private readonly ThreadLocal<StringBuilder> _sb;
+        private readonly ThreadLocal<Utf8JsonWriter> _writer;
+        private Utf8JsonWriter Writer => _writer.Value;
         private const string TimeFormat = "O";
         private const string TimeSpanFormat = "c";
 #if FEATURE_DATE_AND_TIME_ONLY
@@ -84,9 +83,15 @@ namespace Serilog.Extensions.Formatting
                 SkipValidation = skipValidation,
                 Encoder = jsonWriterEncoder,
             };
-            _writer = new ThreadLocal<Utf8JsonWriter>(() => new Utf8JsonWriter(Stream.Null, jsonWriterOptions), true);
-            _sb = new ThreadLocal<StringBuilder>(() => new StringBuilder(), false);
-            _sw = new ThreadLocal<StringWriter>(() => new StringWriter(_sb.Value), true);
+            _writer = new ThreadLocal<Utf8JsonWriter>(() => new Utf8JsonWriter(Stream.Null, jsonWriterOptions));
+            _sb = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+            _sw = new ThreadLocal<StringWriter>(() => new StringWriter(_sb.Value));
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
         }
 
         /// <inheritdoc />
@@ -163,7 +168,6 @@ namespace Serilog.Extensions.Formatting
             if (tokensWithFormat.Length != 0)
             {
                 writer.WriteStartObject(_names.Renderings);
-
                 WriteRenderingsObject(tokensWithFormat, logEvent.Properties, writer);
                 writer.WriteEndObject();
             }
@@ -499,36 +503,12 @@ namespace Serilog.Extensions.Formatting
                 return;
             }
 
-            foreach (var writer in _writer.Values)
-            {
-                writer.Dispose();
-            }
+            _writer.Value.Dispose();
             _writer.Dispose();
 
-            foreach (var stringWriter in _sw.Values)
-            {
-                stringWriter.Dispose();
-            }
+            _sw.Value.Dispose();
             _sw.Dispose();
             _sb.Dispose();
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-    }
-
-    internal struct RenderProps
-    {
-        public Utf8JsonWriter Utf8JsonWriter { get; }
-        public StringWriter StringWriter { get; }
-
-        public RenderProps(Utf8JsonWriter utf8JsonWriter, StringWriter stringWriter)
-        {
-            Utf8JsonWriter = utf8JsonWriter;
-            StringWriter = stringWriter;
         }
     }
 }
