@@ -17,7 +17,7 @@ namespace Serilog.Extensions.Formatting
     /// <summary>
     ///     Formats log events in a simple JSON structure using <see cref="System.Text.Json.Utf8JsonWriter" />.
     /// </summary>
-    public class Utf8JsonFormatter : ITextFormatter, IDisposable, IAsyncDisposable
+    public sealed class Utf8JsonFormatter : ITextFormatter, IDisposable
     {
         private readonly string _closingDelimiter;
         private readonly CultureInfo _formatProvider;
@@ -87,20 +87,6 @@ namespace Serilog.Extensions.Formatting
             _writer = new ThreadLocal<Utf8JsonWriter>(() => new Utf8JsonWriter(Stream.Null, jsonWriterOptions), true);
             _sb = new ThreadLocal<StringBuilder>(() => new StringBuilder(), false);
             _sw = new ThreadLocal<StringWriter>(() => new StringWriter(_sb.Value), true);
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc />
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsyncCore();
-            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
@@ -517,24 +503,20 @@ namespace Serilog.Extensions.Formatting
             {
                 writer.Dispose();
             }
+            _writer.Dispose();
 
             foreach (var stringWriter in _sw.Values)
             {
                 stringWriter.Dispose();
             }
+            _sw.Dispose();
+            _sb.Dispose();
         }
 
-        private async ValueTask DisposeAsyncCore()
+        /// <inheritdoc />
+        public void Dispose()
         {
-            foreach (var stringWriter in _sw.Values)
-            {
-                stringWriter.Dispose();
-            }
-
-            foreach (var writer in _writer.Values)
-            {
-                await writer.DisposeAsync();
-            }
+            Dispose(true);
         }
     }
 

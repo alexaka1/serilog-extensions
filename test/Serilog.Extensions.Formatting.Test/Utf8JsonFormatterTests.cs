@@ -168,6 +168,10 @@ namespace Serilog.Extensions.Formatting.Test
 
             // Wait for all tasks to complete
             await Task.WhenAll(tasks);
+            if (@params.Formatter is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
 
             // Assert that all results are the same as expected output
             for (int i = 0; i < @params.Threads; i++)
@@ -308,16 +312,6 @@ namespace Serilog.Extensions.Formatting.Test
             Assert.Throws<ArgumentNullException>(() => formatter.Format(null, new StringWriter()));
             Assert.Throws<ArgumentNullException>(() => formatter.Format(Some.LogEvent(), null));
             // ReSharper restore AssignNullToNotNullAttribute
-        }
-
-        [Fact]
-        public async Task UseAfterDisposeAsyncShouldThrow()
-        {
-            var formatter = new Utf8JsonFormatter();
-            // init lazy resources
-            formatter.Format(Some.LogEvent(), new StringWriter());
-            await formatter.DisposeAsync();
-            Assert.Throws<ObjectDisposedException>(() => formatter.Format(Some.LogEvent(), new StringWriter()));
         }
 
         [Fact]
