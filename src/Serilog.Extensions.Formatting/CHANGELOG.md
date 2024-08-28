@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.4.1
+
+### Patch Changes
+
+- c82b2ca: Increase performance by using a Utf8JsonWriter on a per thread basis, thus retaining the previous single-threaded performance.
+
 ## 0.4.0
 
 ### Minor Changes
