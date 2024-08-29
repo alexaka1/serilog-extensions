@@ -220,7 +220,15 @@ namespace Serilog.Extensions.Formatting
             foreach (var element in dictionary.Elements)
             {
                 string key = element.Key.Value?.ToString();
-                writer.WritePropertyName(key != null ? _namingPolicy.ConvertName(key) : _names.Null);
+                if (key != null)
+                {
+                    writer.WritePropertyName(_namingPolicy.ConvertName(key));
+                }
+                else
+                {
+                    writer.WritePropertyName(_names.Null);
+                }
+
                 Format(element.Value, writer);
             }
 
