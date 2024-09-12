@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.4.2
+
+### Patch Changes
+
+- a7ee0b8: Small performance increase by pre-encoding the default property names, to be able to write them to stream as-is.
+
 ## 0.4.1
 
 ### Patch Changes
