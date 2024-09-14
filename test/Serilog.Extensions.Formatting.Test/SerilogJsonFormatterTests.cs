@@ -3,16 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text.Json.Nodes;
 using Serilog.Events;
 using Serilog.Parsing;
 using Xunit;
 using Xunit.Abstractions;
 using static Serilog.Events.LogEventLevel;
+#if FEATURE_ISPANFORMATTABLE
+using System.Globalization;
+using System.Net;
+#endif
 
 namespace Serilog.Extensions.Formatting.Test
 {
