@@ -29,6 +29,7 @@ jobs:
       contents: write
       issues: read
       id-token: write
+      attestations: write
     outputs:
       publishable: ${{ steps.pack.outputs.canPack == 'true'}}
       version: ${{ steps.pack.outputs.version }}
@@ -99,10 +100,15 @@ jobs:
       - name: Dotnet build
         if: steps.pack.outputs.canPack == 'true'
         run: dotnet build ${{ env.Project }} --configuration Release --no-restore
-      - name: Pack nuget
+      - name: Pack nupkg
         if: steps.pack.outputs.canPack == 'true'
         run: dotnet pack ${{ env.Project }} -c Release -o ${{ github.workspace }}/artifacts
-      - name: Upload nuget
+      - name: Generate nupkg attestation
+        if: steps.pack.outputs.canPack == 'true'
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: ${{ github.workspace }}/artifacts
+      - name: Upload nupkg
         if: steps.pack.outputs.canPack == 'true'
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
@@ -133,7 +139,7 @@ jobs:
           # we use credentials to push tags below
           persist-credentials: true
       - uses: chainguard-dev/actions/setup-gitsign@57cb0b7560d9b9b081c15ac5ef689f73f4dda03e
-      - name: Download nuget
+      - name: Download nupkg
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: nuget
@@ -143,7 +149,7 @@ jobs:
         uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
         with:
           dotnet-version: ${{ env.dotnet }}
-      - name: Publish Nuget
+      - name: Publish nupkg
         run: dotnet nuget push ${{ github.workspace }}/artifacts/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
       - name: Create changelog for release
         id: changelog
