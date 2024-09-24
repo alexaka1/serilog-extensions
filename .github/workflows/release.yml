@@ -105,7 +105,7 @@ jobs:
         run: dotnet pack ${{ env.Project }} -c Release -o ${{ github.workspace }}/artifacts
       - name: Generate nupkg attestation
         if: steps.pack.outputs.canPack == 'true'
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
           subject-path: ${{ github.workspace }}/artifacts
       - name: Upload nupkg
