@@ -23,6 +23,11 @@ namespace Serilog.Extensions.Formatting.Test
             SelfLog.Enable(_output.WriteLine);
         }
 
+        public void Dispose()
+        {
+            SelfLog.Disable();
+        }
+
         [Theory]
         [MemberData(nameof(MemberData))]
         public async Task HostedServiceCanWriteOnManyThreads(HostParams data)
@@ -153,11 +158,6 @@ namespace Serilog.Extensions.Formatting.Test
                 Threads = threads;
                 FilePath = filePath;
             }
-        }
-
-        public void Dispose()
-        {
-            SelfLog.Disable();
         }
     }
 }
