@@ -29,7 +29,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Serilog"/>
-    <PackageReference Include="System.Text.Json" Condition="$(TargetFramework) == 'netstandard2.0'"/>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json"/>
   </ItemGroup>
 
 </Project>
