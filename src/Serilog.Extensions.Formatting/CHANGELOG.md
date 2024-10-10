@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.4.3
+
+### Patch Changes
+
+- 930c871: Update dependencies
+
 ## 0.4.2
 
 ### Patch Changes
