@@ -58,6 +58,15 @@
           "Microsoft.CodeCoverage": "17.11.1"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net472": "1.0.3"
+        }
+      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.20.72, )",
@@ -456,6 +465,11 @@
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies.net472": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "0E7evZXHXaDYYiLRfpyXvCh+yzM2rNTyuZDI+ZO7UUqSc6GfjePiXTdqJGtgIKUwdI81tzQKmaWprnUiPj9hAw=="
+      },
       "Microsoft.TestPlatform.ObjectModel": {
         "type": "Transitive",
         "resolved": "17.10.0",
@@ -581,7 +595,7 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.0.2, )",
+          "Serilog": "[4.1.0, )",
           "System.Text.Json": "[8.0.5, )"
         }
       },
@@ -601,9 +615,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.0.2, )",
-        "resolved": "4.0.2",
-        "contentHash": "Vehq4uNYtURe/OnHEpWGvMgrvr5Vou7oZLdn3BuEH5FSCeHXDpNJtpzWoqywXsSvCTuiv0I65mZDRnJSeUvisA==",
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw==",
         "dependencies": {
           "System.Diagnostics.DiagnosticSource": "8.0.1",
           "System.Threading.Channels": "8.0.0"
@@ -667,6 +681,15 @@
           "Microsoft.CodeCoverage": "17.11.1"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net481": "1.0.3"
+        }
+      },
       "Moq": {
         "type": "Direct",
         "requested": "[4.20.72, )",
@@ -1065,6 +1088,11 @@
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
       },
+      "Microsoft.NETFramework.ReferenceAssemblies.net481": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "Vv/20vgHS7VglVOVh8J3Iz/MA+VYKVRp9f7r2qiKBMuzviTOmocG70yq0Q8T5OTmCONkEAIJwETD1zhEfLkAXQ=="
+      },
       "Microsoft.TestPlatform.ObjectModel": {
         "type": "Transitive",
         "resolved": "17.10.0",
@@ -1190,7 +1218,7 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.0.2, )",
+          "Serilog": "[4.1.0, )",
           "System.Text.Json": "[8.0.5, )"
         }
       },
@@ -1210,9 +1238,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.0.2, )",
-        "resolved": "4.0.2",
-        "contentHash": "Vehq4uNYtURe/OnHEpWGvMgrvr5Vou7oZLdn3BuEH5FSCeHXDpNJtpzWoqywXsSvCTuiv0I65mZDRnJSeUvisA==",
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw==",
         "dependencies": {
           "System.Diagnostics.DiagnosticSource": "8.0.1",
           "System.Threading.Channels": "8.0.0"
@@ -1740,7 +1768,7 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.0.2, )"
+          "Serilog": "[4.1.0, )"
         }
       },
       "Microsoft.Extensions.Logging": {
@@ -1756,9 +1784,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.0.2, )",
-        "resolved": "4.0.2",
-        "contentHash": "Vehq4uNYtURe/OnHEpWGvMgrvr5Vou7oZLdn3BuEH5FSCeHXDpNJtpzWoqywXsSvCTuiv0I65mZDRnJSeUvisA=="
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw=="
       }
     },
     "net8.0": {
@@ -2241,7 +2269,7 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.0.2, )"
+          "Serilog": "[4.1.0, )"
         }
       },
       "Microsoft.Extensions.Logging": {
@@ -2257,9 +2285,9 @@
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.0.2, )",
-        "resolved": "4.0.2",
-        "contentHash": "Vehq4uNYtURe/OnHEpWGvMgrvr5Vou7oZLdn3BuEH5FSCeHXDpNJtpzWoqywXsSvCTuiv0I65mZDRnJSeUvisA=="
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw=="
       }
     }
   }
