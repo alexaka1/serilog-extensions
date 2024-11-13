@@ -78,7 +78,7 @@ jobs:
           --
           RunConfiguration.CollectSourceInformation=true
       - name: ReportGenerator
-        uses: danielpalme/ReportGenerator-GitHub-Action@62f9e70ab348d56eee76d446b4db903a85ab0ea8 # 5.3.11
+        uses: danielpalme/ReportGenerator-GitHub-Action@51bf1a384133df0710ee9a3e37dbf1c829f33677 # 5.4.0
         with:
           reports: ./coverage/**/coverage.cobertura.xml
           targetdir: ./coverage
