@@ -6,7 +6,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
-  dotnet: 8.0.x
+  dotnet: 9.0.x
   node: 20.x
   Project: src/Serilog.Extensions.Formatting
   PackageJson: src/Serilog.Extensions.Formatting/package.json
