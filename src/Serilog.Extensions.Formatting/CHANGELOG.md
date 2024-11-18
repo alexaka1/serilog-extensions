@@ -1,5 +1,13 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.5.0
+
+### Minor Changes
+
+- fc9f8aa: Added .Net 9 support
+
+  Bump Serilog to 4.1.0
+
 ## 0.4.3
 
 ### Patch Changes
