@@ -11,153 +11,147 @@ using Serilog.Formatting.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Serilog.Extensions.Formatting.Test
+namespace Serilog.Extensions.Formatting.Test;
+
+public sealed class HostTests : IDisposable
 {
-    public sealed class HostTests : IDisposable
+    private readonly ITestOutputHelper _output;
+
+    public HostTests(ITestOutputHelper output)
     {
-        private readonly ITestOutputHelper _output;
+        _output = output;
+        SelfLog.Enable(_output.WriteLine);
+    }
 
-        public HostTests(ITestOutputHelper output)
+    public void Dispose()
+    {
+        SelfLog.Disable();
+    }
+
+    [Theory]
+    [MemberData(nameof(MemberData))]
+    public async Task HostedServiceCanWriteOnManyThreads(HostParams data)
+    {
+        var now = DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00");
+        data.Services.GetRequiredService<ILogger<HostTests>>()
+            .LogInformation("Hello World, {CurrentTime:hh:mm:ss t z}", now);
+        var service = data.Services;
+        // string expected = ;
+
+        var startSignal = new ManualResetEvent(false);
+
+        var tasks = new Task[data.Threads];
+        for (int i = 0; i < data.Threads; i++)
         {
-            _output = output;
-            SelfLog.Enable(_output.WriteLine);
-        }
-
-        public void Dispose()
-        {
-            SelfLog.Disable();
-        }
-
-        [Theory]
-        [MemberData(nameof(MemberData))]
-        public async Task HostedServiceCanWriteOnManyThreads(HostParams data)
-        {
-            var now = DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00");
-            data.Services.GetRequiredService<ILogger<HostTests>>()
-                .LogInformation("Hello World, {CurrentTime:hh:mm:ss t z}", now);
-            var service = data.Services;
-            // string expected = ;
-
-            var startSignal = new ManualResetEvent(false);
-
-            var tasks = new Task[data.Threads];
-            for (int i = 0; i < data.Threads; i++)
+            int taskIndex = i;
+            tasks[taskIndex] = Task.Run(() =>
             {
-                int taskIndex = i;
-                tasks[taskIndex] = Task.Run(() =>
+                // Wait until the signal is given to start
+                startSignal.WaitOne();
+                var logger = service.GetRequiredService<ILogger<HostTests>>();
+
+                for (int j = 0; j < data.Iterations; j++)
                 {
-                    // Wait until the signal is given to start
-                    startSignal.WaitOne();
-                    var logger = service.GetRequiredService<ILogger<HostTests>>();
-
-                    for (int j = 0; j < data.Iterations; j++)
-                    {
-                        logger.LogInformation("Hello World, {CurrentTime:hh:mm:ss t z}", now);
-                    }
-
-                    // results[taskIndex] = writer.ToString();
-                });
-            }
-
-            // Start all tasks at once
-            startSignal.Set();
-
-            // Wait for all tasks to complete
-            await Task.WhenAll(tasks);
-            Assert.True(true);
-            // await Task.Delay(TimeSpan.FromSeconds(5));
-            Log.CloseAndFlush();
-            await data.Services.DisposeAsync();
-            using (var fileStream = new FileStream(data.FilePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096,
-                       FileOptions.SequentialScan))
-            using (var stringReader = new StreamReader(fileStream))
-            {
-                // read line by line
-                string actual;
-                int i = 0;
-                while ((actual = await stringReader.ReadLineAsync()) != null)
-                {
-                    i++;
-                    if (string.IsNullOrWhiteSpace(actual))
-                    {
-                        _output.WriteLine("Empty line at {0}", i);
-                        continue;
-                    }
-
-                    Helpers.AssertValidJson(actual, _output);
-                    // Assert.Equal(expected, actual);
+                    logger.LogInformation("Hello World, {CurrentTime:hh:mm:ss t z}", now);
                 }
 
-                Assert.Equal(data.Iterations * data.Threads + 1, i);
-            }
-
-            File.Delete(data.FilePath);
+                // results[taskIndex] = writer.ToString();
+            });
         }
 
-        public static TheoryData<HostParams> MemberData()
+        // Start all tasks at once
+        startSignal.Set();
+
+        // Wait for all tasks to complete
+        await Task.WhenAll(tasks);
+        Assert.True(true);
+        // await Task.Delay(TimeSpan.FromSeconds(5));
+        Log.CloseAndFlush();
+        await data.Services.DisposeAsync();
+        using (var fileStream = new FileStream(data.FilePath, FileMode.Open, FileAccess.Read, FileShare.None,
+                   4096,
+                   FileOptions.SequentialScan))
         {
-            int[] threads = { 1, 10, 100 /*, 500*/ };
-            int[] iterations = { 1, 100, 1000 /*, 10000*/ };
-            ITextFormatter[] formatter = { new Utf8JsonFormatter("\n", true), new JsonFormatter("\n", true) };
-            var data = new List<HostParams>();
-            foreach (int thread in threads)
+            using var stringReader = new StreamReader(fileStream);
+            // read line by line
+            int i = 0;
+            while (await stringReader.ReadLineAsync() is { } actual)
             {
-                foreach (int iteration in iterations)
+                i++;
+                if (string.IsNullOrWhiteSpace(actual))
                 {
-                    foreach (var textFormatter in formatter)
+                    _output.WriteLine("Empty line at {0}", i);
+                    continue;
+                }
+
+                Helpers.AssertValidJson(actual, _output);
+                // Assert.Equal(expected, actual);
+            }
+
+            Assert.Equal(data.Iterations * data.Threads + 1, i);
+        }
+
+        File.Delete(data.FilePath);
+    }
+
+    public static TheoryData<HostParams> MemberData()
+    {
+        int[] threads = [1, 10, 100 /*, 500*/];
+        int[] iterations = [1, 100, 1000 /*, 10000*/];
+        ITextFormatter[] formatter = [new Utf8JsonFormatter("\n", true), new JsonFormatter("\n", true)];
+        var data = new List<HostParams>();
+        foreach (int thread in threads)
+        {
+            foreach (int iteration in iterations)
+            {
+                foreach (var textFormatter in formatter)
+                {
+                    var services = new ServiceCollection();
+                    string fileName = Path.GetTempFileName();
+                    services.AddLogging().AddSerilog(configuration =>
                     {
-                        var services = new ServiceCollection();
-                        string fileName = Path.GetTempFileName();
-                        services.AddLogging().AddSerilog(configuration =>
-                        {
-                            configuration.MinimumLevel.Verbose()
-                                .WriteTo.Console(new Utf8JsonFormatter("\n", true))
-                                .WriteTo.Async(a => a.Console(new Utf8JsonFormatter("\n", true)))
-                                .Enrich.WithProperty("Hello",
-                                    new
-                                    {
-                                        now = DateTimeOffset.UtcNow, Exception = new InvalidOperationException(),
-                                        Url = new Uri("https://github.com/alexaka1/serilog-extensions"),
-                                    })
-                                // don't drop logs
-                                .WriteTo.Async(a => a.File(textFormatter, fileName, buffered: false),
-                                    blockWhenFull: true)
-                                ;
-                        });
-                        data.Add(new HostParams(services.BuildServiceProvider(), iteration, thread, fileName,
-                            textFormatter));
-                    }
+                        configuration.MinimumLevel.Verbose()
+                            .WriteTo.Console(new Utf8JsonFormatter("\n", true))
+                            .WriteTo.Async(a => a.Console(new Utf8JsonFormatter("\n", true)))
+                            .Enrich.WithProperty("Hello",
+                                new
+                                {
+                                    now = DateTimeOffset.UtcNow, Exception = new InvalidOperationException(),
+                                    Url = new Uri("https://github.com/alexaka1/serilog-extensions"),
+                                })
+                            // don't drop logs
+                            .WriteTo.Async(a => a.File(textFormatter, fileName, buffered: false),
+                                blockWhenFull: true)
+                            ;
+                    });
+                    data.Add(new HostParams(services.BuildServiceProvider(), iteration, thread, fileName,
+                        textFormatter));
                 }
             }
-
-            return new TheoryData<HostParams>(data);
         }
 
-        [Serializable]
-        public class HostParams
-        {
-            [NonSerialized]
-            private readonly ITextFormatter _textFormatter;
+        return new TheoryData<HostParams>(data);
+    }
 
-            [NonSerialized]
-            public readonly ServiceProvider Services;
+    [Serializable]
+    public class HostParams(
+        ServiceProvider services,
+        int iterations,
+        int threads,
+        string filePath,
+        ITextFormatter textFormatter)
+    {
+        [NonSerialized]
+        private readonly ITextFormatter _textFormatter = textFormatter;
 
-            public int Threads { get; set; }
+        [NonSerialized]
+        public readonly ServiceProvider Services = services;
 
-            public int Iterations { get; set; }
+        public int Threads { get; set; } = threads;
 
-            public string FilePath { get; set; }
-            public string Name => _textFormatter.GetType().Name;
+        public int Iterations { get; set; } = iterations;
 
-            public HostParams(ServiceProvider services, int iterations, int threads, string filePath,
-                ITextFormatter textFormatter)
-            {
-                _textFormatter = textFormatter;
-                Services = services;
-                Iterations = iterations;
-                Threads = threads;
-                FilePath = filePath;
-            }
-        }
+        public string FilePath { get; set; } = filePath;
+        public string Name => _textFormatter.GetType().Name;
     }
 }

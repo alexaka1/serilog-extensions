@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
-    <LangVersion>7.3</LangVersion>
+    <TargetFrameworks>net9.0;net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>12</LangVersion>
     <AnalysisLevel>latest</AnalysisLevel>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -30,7 +30,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0' ">
     <DefineConstants>$(DefineConstants);FEATURE_SPAN;FEATURE_DATE_AND_TIME_ONLY;FEATURE_ISPANFORMATTABLE;FEATURE_JSON_NAMING_POLICY;FEATURE_IUTF8SPANFORMATTABLE;</DefineConstants>
   </PropertyGroup>
 </Project>
