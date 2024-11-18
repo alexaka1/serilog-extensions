@@ -2,25 +2,8 @@ using System.Text.Json;
 
 namespace Serilog.Extensions.Formatting
 {
-    internal readonly struct JsonLogPropertyNames
+    internal readonly struct JsonLogPropertyNames(JsonNamingPolicy namingPolicy)
     {
-        public JsonLogPropertyNames(JsonNamingPolicy namingPolicy)
-        {
-            Timestamp = JsonEncodedText.Encode(namingPolicy.ConvertName(TimestampPropertyName));
-            Level = JsonEncodedText.Encode(namingPolicy.ConvertName(LevelPropertyName));
-            MessageTemplate = JsonEncodedText.Encode(namingPolicy.ConvertName(MessageTemplatePropertyName));
-            RenderedMessage = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderedMessagePropertyName));
-            TraceId = JsonEncodedText.Encode(namingPolicy.ConvertName(TraceIdPropertyName));
-            SpanId = JsonEncodedText.Encode(namingPolicy.ConvertName(SpanIdPropertyName));
-            Exception = JsonEncodedText.Encode(namingPolicy.ConvertName(ExceptionPropertyName));
-            Properties = JsonEncodedText.Encode(namingPolicy.ConvertName(PropertiesPropertyName));
-            Renderings = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderingsPropertyName));
-            Null = JsonEncodedText.Encode(namingPolicy.ConvertName(NullPropertyName));
-            TypeTag = JsonEncodedText.Encode(namingPolicy.ConvertName(TypeTagPropertyName));
-            Format = JsonEncodedText.Encode(namingPolicy.ConvertName(FormatPropertyName));
-            Rendering = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderingPropertyName));
-        }
-
         private const string TimestampPropertyName = "Timestamp";
         private const string LevelPropertyName = "Level";
         private const string MessageTemplatePropertyName = "MessageTemplate";
@@ -35,18 +18,18 @@ namespace Serilog.Extensions.Formatting
         private const string FormatPropertyName = "Format";
         private const string RenderingPropertyName = "Rendering";
 
-        public JsonEncodedText Timestamp { get; }
-        public JsonEncodedText Level { get; }
-        public JsonEncodedText MessageTemplate { get; }
-        public JsonEncodedText RenderedMessage { get; }
-        public JsonEncodedText TraceId { get; }
-        public JsonEncodedText SpanId { get; }
-        public JsonEncodedText Exception { get; }
-        public JsonEncodedText Properties { get; }
-        public JsonEncodedText Renderings { get; }
-        public JsonEncodedText Null { get; }
-        public JsonEncodedText TypeTag { get; }
-        public JsonEncodedText Format { get; }
-        public JsonEncodedText Rendering { get; }
+        public JsonEncodedText Timestamp { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(TimestampPropertyName));
+        public JsonEncodedText Level { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(LevelPropertyName));
+        public JsonEncodedText MessageTemplate { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(MessageTemplatePropertyName));
+        public JsonEncodedText RenderedMessage { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderedMessagePropertyName));
+        public JsonEncodedText TraceId { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(TraceIdPropertyName));
+        public JsonEncodedText SpanId { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(SpanIdPropertyName));
+        public JsonEncodedText Exception { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(ExceptionPropertyName));
+        public JsonEncodedText Properties { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(PropertiesPropertyName));
+        public JsonEncodedText Renderings { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderingsPropertyName));
+        public JsonEncodedText Null { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(NullPropertyName));
+        public JsonEncodedText TypeTag { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(TypeTagPropertyName));
+        public JsonEncodedText Format { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(FormatPropertyName));
+        public JsonEncodedText Rendering { get; } = JsonEncodedText.Encode(namingPolicy.ConvertName(RenderingPropertyName));
     }
 }

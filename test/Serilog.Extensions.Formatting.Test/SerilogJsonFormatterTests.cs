@@ -16,22 +16,15 @@ using static Serilog.Events.LogEventLevel;
 
 namespace Serilog.Extensions.Formatting.Test
 {
-    public class SerilogJsonFormatterTests
+    public class SerilogJsonFormatterTests(ITestOutputHelper output)
     {
-        public SerilogJsonFormatterTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
-        private readonly ITestOutputHelper _output;
-
         private string FormatToJson(LogEvent @event)
         {
             var formatter = new Utf8JsonFormatter();
             var stringWriter = new StringWriter();
             formatter.Format(@event, stringWriter);
             string result = stringWriter.ToString();
-            Helpers.AssertValidJson(result, _output);
+            Helpers.AssertValidJson(result, output);
             return result;
         }
 
@@ -39,7 +32,7 @@ namespace Serilog.Extensions.Formatting.Test
         {
             string json = FormatToJson(@event);
 #if DEBUG
-            _output.WriteLine(json);
+            output.WriteLine(json);
 #endif
             return JsonNode.Parse(json)?.AsObject() ?? new JsonObject();
         }
@@ -123,7 +116,7 @@ namespace Serilog.Extensions.Formatting.Test
             @event.AddOrUpdateProperty(dictProp);
 
             string formatted = FormatToJson(@event);
-            string expected = $@"{{""{dictKey}"":{dictValue}}}";
+            string expected = $$"""{"{{dictKey}}":{{dictValue}}}""";
             Assert.Contains(expected, formatted);
         }
 
@@ -183,7 +176,7 @@ namespace Serilog.Extensions.Formatting.Test
         public void AnArrayPropertySerializesAsObjectToStringValue()
         {
             string name = Some.String();
-            Guid[] value = { Guid.Empty, Guid.NewGuid(), Guid.NewGuid() };
+            Guid[] value = [Guid.Empty, Guid.NewGuid(), Guid.NewGuid()];
             var @event = Some.InformationEvent();
             @event.AddOrUpdateProperty(new LogEventProperty(name, new ScalarValue(value)));
 
@@ -309,14 +302,14 @@ namespace Serilog.Extensions.Formatting.Test
         public void ASequencePropertySerializesAsArrayValue()
         {
             string name = Some.String();
-            int?[] ints = { Some.Int(), Some.Int() };
+            int?[] ints = [Some.Int(), Some.Int()];
             var value = new SequenceValue(ints.Select(i => new ScalarValue(i)));
             var @event = Some.InformationEvent();
             @event.AddOrUpdateProperty(new LogEventProperty(name, value));
 
             var formatted = FormatJson(@event);
             var result = new List<int?>();
-            foreach (var el in formatted["Properties"]?[name]?.AsArray() ?? new JsonArray())
+            foreach (var el in formatted["Properties"]?[name]?.AsArray() ?? [])
             {
                 result.Add((int?)el);
             }
@@ -438,7 +431,7 @@ namespace Serilog.Extensions.Formatting.Test
                 null,
                 Some.MessageTemplate(),
                 new List<LogEventProperty>
-                        { new LogEventProperty("name", new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.789000"))) }
+                        { new("name", new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.789000"))) }
                     .AsReadOnly());
 
             var formatted = FormatJson(@event);
@@ -458,7 +451,7 @@ namespace Serilog.Extensions.Formatting.Test
                 null,
                 Some.MessageTemplate(),
                 new List<LogEventProperty>
-                    { new LogEventProperty("name", new ScalarValue(DateOnly.MaxValue)) }.AsReadOnly());
+                    { new("name", new ScalarValue(DateOnly.MaxValue)) }.AsReadOnly());
 
             var formatted = FormatJson(@event);
             Assert.Equal(
@@ -495,7 +488,7 @@ namespace Serilog.Extensions.Formatting.Test
                 null,
                 Some.MessageTemplate(),
                 new List<LogEventProperty>
-                    { new LogEventProperty("name", new ScalarValue(TimeOnly.MaxValue)) }.AsReadOnly());
+                    { new("name", new ScalarValue(TimeOnly.MaxValue)) }.AsReadOnly());
 
             var formatted = FormatJson(@event);
             Assert.Equal(
@@ -510,13 +503,13 @@ namespace Serilog.Extensions.Formatting.Test
             var p = new MessageTemplateParser();
             var e = new LogEvent(Some.OffsetInstant(), Information, null,
                 p.Parse("{AProperty:000}"),
-                new List<LogEventProperty> { new LogEventProperty("AProperty", new ScalarValue(12)) }.AsReadOnly());
+                new List<LogEventProperty> { new("AProperty", new ScalarValue(12)) }.AsReadOnly());
 
             var d = FormatEvent(e);
             var rs = d["Renderings"]?.AsObject() ?? new JsonObject();
             Assert.Single(rs);
             var ap = d["Renderings"]?["AProperty"];
-            var fs = ap?.AsArray() ?? new JsonArray();
+            var fs = ap?.AsArray() ?? [];
             Assert.Single(fs);
             Assert.Equal("000", (string)fs.Single()?["Format"]);
             Assert.Equal("012", (string)fs.Single()?["Rendering"]);
@@ -528,7 +521,7 @@ namespace Serilog.Extensions.Formatting.Test
             var p = new MessageTemplateParser();
             var e = new LogEvent(Some.OffsetInstant(), Information, null,
                 p.Parse("{AProperty}"),
-                new List<LogEventProperty> { new LogEventProperty("AProperty", new ScalarValue(12)) }.AsReadOnly());
+                new List<LogEventProperty> { new("AProperty", new ScalarValue(12)) }.AsReadOnly());
 
             var d = FormatEvent(e);
 
@@ -558,7 +551,7 @@ namespace Serilog.Extensions.Formatting.Test
             var p = new MessageTemplateParser();
             var e = new LogEvent(Some.OffsetInstant(), Information, null,
                 p.Parse("Value: {AProperty}"),
-                new List<LogEventProperty> { new LogEventProperty("AProperty", new ScalarValue(12)) }.AsReadOnly());
+                new List<LogEventProperty> { new("AProperty", new ScalarValue(12)) }.AsReadOnly());
 
             var formatter = new Utf8JsonFormatter(renderMessage: true);
 
@@ -566,7 +559,7 @@ namespace Serilog.Extensions.Formatting.Test
             formatter.Format(e, buffer);
             string json = buffer.ToString();
 
-            Assert.Contains(@",""MessageTemplate"":""Value: {AProperty}"",""RenderedMessage"":""Value: 12"",", json);
+            Assert.Contains(""","MessageTemplate":"Value: {AProperty}","RenderedMessage":"Value: 12",""", json);
         }
 
         [Fact]
@@ -577,7 +570,7 @@ namespace Serilog.Extensions.Formatting.Test
                 p.Parse("{@AProperty}"),
                 new List<LogEventProperty>
                 {
-                    new LogEventProperty("AProperty", new SequenceValue(new List<LogEventPropertyValue>
+                    new("AProperty", new SequenceValue(new List<LogEventPropertyValue>
                         {
                             new SequenceValue(new List<LogEventPropertyValue>
                                 { new ScalarValue("Hello") }.AsReadOnly()),
@@ -613,8 +606,12 @@ namespace Serilog.Extensions.Formatting.Test
             var formatter = new Utf8JsonFormatter();
             formatter.Format(evt, sw);
             string formatted = sw.ToString();
-            Assert.Contains($@"""TraceId"":""{traceId}""", formatted);
-            Assert.Contains($@"""SpanId"":""{spanId}""", formatted);
+            Assert.Contains($"""
+                "TraceId":"{traceId}"
+                """, formatted);
+            Assert.Contains($"""
+                "SpanId":"{spanId}"
+                """, formatted);
         }
 
 #if FEATURE_ISPANFORMATTABLE

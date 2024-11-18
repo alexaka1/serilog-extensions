@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net481;net472</TargetFrameworks>
+    <TargetFrameworks>net9.0;net8.0;net6.0;net481;net472</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
@@ -10,6 +10,10 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet"/>
     <PackageReference Include="Microsoft.Extensions.Logging"/>
+    <PackageReference Include="PolySharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Serilog.Enrichers.Environment"/>
     <PackageReference Include="Serilog.Enrichers.Memory"/>
     <PackageReference Include="Serilog.Enrichers.Process"/>

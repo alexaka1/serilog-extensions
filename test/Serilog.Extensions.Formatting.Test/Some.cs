@@ -10,11 +10,11 @@ namespace Serilog.Extensions.Formatting.Test
 {
     internal static class Some
     {
-        private static int Counter;
+        private static int s_counter;
 
         public static int Int()
         {
-            return Interlocked.Increment(ref Counter);
+            return Interlocked.Increment(ref s_counter);
         }
 
         public static decimal Decimal()

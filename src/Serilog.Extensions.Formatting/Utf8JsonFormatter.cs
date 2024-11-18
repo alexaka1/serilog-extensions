@@ -99,6 +99,7 @@ namespace Serilog.Extensions.Formatting
         /// <exception cref="ArgumentNullException">When <paramref name="output" /> is <c>null</c></exception>
         public void Format(LogEvent logEvent, TextWriter output)
         {
+#if NETSTANDARD2_0
             if (logEvent == null)
             {
                 throw new ArgumentNullException(nameof(logEvent));
@@ -108,6 +109,10 @@ namespace Serilog.Extensions.Formatting
             {
                 throw new ArgumentNullException(nameof(output));
             }
+#else
+            ArgumentNullException.ThrowIfNull(logEvent);
+            ArgumentNullException.ThrowIfNull(output);
+#endif
 
             Stream str;
             if (output is StreamWriter streamWriter)
@@ -174,12 +179,12 @@ namespace Serilog.Extensions.Formatting
 
             writer.WriteEndObject();
             writer.Flush();
-            if (!(output is StreamWriter) && str is MemoryStream mem)
+            if (output is not StreamWriter && str is MemoryStream mem)
             {
                 // if we used memory stream, we wrote to the memory stream, so we need to write to the output manually
                 using (mem)
                 {
-#if NET6_0_OR_GREATER
+#if FEATURE_SPAN
                     output.Write(Encoding.UTF8.GetString(mem.ToArray()).AsSpan());
 #else
                     output.Write(Encoding.UTF8.GetString(mem.ToArray()));
@@ -326,12 +331,7 @@ namespace Serilog.Extensions.Formatting
                             writer.WriteBooleanValue(b);
                             break;
                         case char c:
-// #if NET8_0_OR_GREATER
-//                             _writer.WriteStringValue([c]);
-// #else
-//                         _writer.WriteStringValue(new[] { c });
-// #endif
-                            writer.WriteStringValue(new[] { c });
+                            writer.WriteStringValue([c]);
                             break;
                         case DateTime dt:
                             writer.WriteStringValue(dt);
@@ -347,14 +347,14 @@ namespace Serilog.Extensions.Formatting
                                     format: TimeSpanFormat))
                             {
                                 // fallback to string
-                                writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer[..written]);
                             }
 #elif FEATURE_ISPANFORMATTABLE
                             Span<char> buffer = stackalloc char[_spanBufferSize];
                             if (timeSpan.TryFormat(buffer, out int written, formatProvider: _formatProvider,
                                     format: TimeSpanFormat))
                             {
-                                writer.WriteStringValue(buffer.Slice(0, written));
+                                writer.WriteStringValue(buffer[..written]);
                             }
 #else
                             writer.WriteStringValue(timeSpan.ToString(TimeSpanFormat, _formatProvider));

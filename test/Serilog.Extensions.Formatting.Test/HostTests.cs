@@ -68,14 +68,14 @@ namespace Serilog.Extensions.Formatting.Test
             // await Task.Delay(TimeSpan.FromSeconds(5));
             Log.CloseAndFlush();
             await data.Services.DisposeAsync();
-            using (var fileStream = new FileStream(data.FilePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096,
-                       FileOptions.SequentialScan))
-            using (var stringReader = new StreamReader(fileStream))
+            using (var fileStream = new FileStream(data.FilePath, FileMode.Open, FileAccess.Read, FileShare.None,
+                             4096,
+                             FileOptions.SequentialScan))
             {
+                using var stringReader = new StreamReader(fileStream);
                 // read line by line
-                string actual;
                 int i = 0;
-                while ((actual = await stringReader.ReadLineAsync()) != null)
+                while (await stringReader.ReadLineAsync() is { } actual)
                 {
                     i++;
                     if (string.IsNullOrWhiteSpace(actual))
@@ -96,9 +96,9 @@ namespace Serilog.Extensions.Formatting.Test
 
         public static TheoryData<HostParams> MemberData()
         {
-            int[] threads = { 1, 10, 100 /*, 500*/ };
-            int[] iterations = { 1, 100, 1000 /*, 10000*/ };
-            ITextFormatter[] formatter = { new Utf8JsonFormatter("\n", true), new JsonFormatter("\n", true) };
+            int[] threads = [1, 10, 100 /*, 500*/];
+            int[] iterations = [1, 100, 1000 /*, 10000*/];
+            ITextFormatter[] formatter = [new Utf8JsonFormatter("\n", true), new JsonFormatter("\n", true)];
             var data = new List<HostParams>();
             foreach (int thread in threads)
             {
@@ -134,30 +134,25 @@ namespace Serilog.Extensions.Formatting.Test
         }
 
         [Serializable]
-        public class HostParams
+        public class HostParams(
+            ServiceProvider services,
+            int iterations,
+            int threads,
+            string filePath,
+            ITextFormatter textFormatter)
         {
             [NonSerialized]
-            private readonly ITextFormatter _textFormatter;
+            private readonly ITextFormatter _textFormatter = textFormatter;
 
             [NonSerialized]
-            public readonly ServiceProvider Services;
+            public readonly ServiceProvider Services = services;
 
-            public int Threads { get; set; }
+            public int Threads { get; set; } = threads;
 
-            public int Iterations { get; set; }
+            public int Iterations { get; set; } = iterations;
 
-            public string FilePath { get; set; }
+            public string FilePath { get; set; } = filePath;
             public string Name => _textFormatter.GetType().Name;
-
-            public HostParams(ServiceProvider services, int iterations, int threads, string filePath,
-                ITextFormatter textFormatter)
-            {
-                _textFormatter = textFormatter;
-                Services = services;
-                Iterations = iterations;
-                Threads = threads;
-                FilePath = filePath;
-            }
         }
     }
 }

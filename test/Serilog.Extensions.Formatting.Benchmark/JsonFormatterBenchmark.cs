@@ -21,10 +21,10 @@ namespace Serilog.Extensions.Formatting.Benchmark
         [ParamsAllValues]
         public Formatters Formatter { get; set; }
 
-        private static readonly DateTime s_propertyValue0 = new DateTime(1970, 1, 1);
+        private static readonly DateTime s_propertyValue0 = new(1970, 1, 1);
         private static readonly dynamic s_propertyValue1 = new { B = new DateTime(2000, 1, 1), C = new[] { 1, 2, 3 } };
 
-        private static readonly Dictionary<string, DateTime> s_propertyValue2 = new Dictionary<string, DateTime>
+        private static readonly Dictionary<string, DateTime> s_propertyValue2 = new()
         {
             { "D", new DateTime(2000, 1, 1) },
             { "E", new DateTime(2000, 1, 1) },
