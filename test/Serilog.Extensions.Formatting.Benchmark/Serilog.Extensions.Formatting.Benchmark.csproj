@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet"/>
-    <PackageReference Include="Microsoft.Extensions.Logging"/>
     <PackageReference Include="PolySharp">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,7 +21,7 @@
     <PackageReference Include="Serilog.Exceptions"/>
     <PackageReference Include="Serilog.Expressions"/>
     <PackageReference Include="Serilog.Sinks.Console"/>
-    <PackageReference Include="System.Reflection.Metadata"/>
+    <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFramework)' == 'net481' OR '$(TargetFramework)' == 'net472'"/>
   </ItemGroup>
 
   <ItemGroup>

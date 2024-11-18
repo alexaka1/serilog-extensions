@@ -57,75 +57,69 @@ namespace Serilog.Extensions.Formatting.Test
             [
                 new LogEvent(Some.OffsetInstant(), LogEventLevel.Information, null,
                     p.Parse("Value: {AProperty}"),
-                    new List<LogEventProperty> { new("AProperty", new ScalarValue(12)) }.AsReadOnly()),
+                    [new LogEventProperty("AProperty", new ScalarValue(12))]),
 
                 new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
                     new Exception("test") { Data = { ["testData"] = "test2" } },
                     p.Parse(
                         "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
-                    new List<LogEventProperty>
-                    {
-                        new("Name", new ScalarValue("John Doe")),
-                        new("Age", new ScalarValue(42)),
-                        new("City", new ScalarValue("London")),
-                        new("Time",
+                    [
+                        new LogEventProperty("Name", new ScalarValue("John Doe")),
+                        new LogEventProperty("Age", new ScalarValue(42)),
+                        new LogEventProperty("City", new ScalarValue("London")),
+                        new LogEventProperty("Time",
                             // DateTimes are trimmed, we test this case elsewhere
                             new ScalarValue(DateTimeOffset.Parse("2023-01-01T12:34:56.7891111+01:00"))
                         ),
-                    }.AsReadOnly()),
+                    ]),
 
                 new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Verbose,
                     new Exception("test") { Data = { ["testData"] = "test2" } },
                     p.Parse(
                         "My name is {Name}, I'm {Age} years old, and I live in {City}, and the time is {Time:HH:mm:ss}"),
-                    new List<LogEventProperty>
-                    {
-                        new("Name", new ScalarValue("John Doe")),
-                        new("Age", new ScalarValue(42)),
-                        new("City", new ScalarValue("London")),
-                        new("Time",
+                    [
+                        new LogEventProperty("Name", new ScalarValue("John Doe")),
+                        new LogEventProperty("Age", new ScalarValue(42)),
+                        new LogEventProperty("City", new ScalarValue("London")),
+                        new LogEventProperty("Time",
                             new ScalarValue(DateTime.Parse("2023-01-01T12:34:56.7891111+01:00"))
                         ),
-                    }.AsReadOnly()),
+                    ]),
 
                 new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Debug,
                     new Exception("test") { Data = { ["testData"] = "test2" } },
                     p.Parse(
                         "I have {Count} fruits, which are {Fruits}"),
-                    new List<LogEventProperty>
-                    {
-                        new("Count", new ScalarValue(3)),
-                        new("Fruits",
-                            new SequenceValue(new List<LogEventPropertyValue>
-                                    { new ScalarValue("apple"), new ScalarValue("banana"), new ScalarValue("cherry") }
-                                .AsReadOnly()
+                    [
+                        new LogEventProperty("Count", new ScalarValue(3)),
+                        new LogEventProperty("Fruits",
+                            new SequenceValue(
+                                [new ScalarValue("apple"), new ScalarValue("banana"), new ScalarValue("cherry")]
                             )
                         ),
-                    }.AsReadOnly()
+                    ]
                 ),
 
                 new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
                     new Exception("test") { Data = { ["testData"] = "test2" } },
                     p.Parse(
                         "I have {Fruit,-20} fruits"),
-                    new List<LogEventProperty> { new("Fruit", new ScalarValue("apple")) }.AsReadOnly()
+                    [new LogEventProperty("Fruit", new ScalarValue("apple"))]
                 ),
 
                 new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information,
                     new Exception("test") { Data = { ["testData"] = "test2" } },
                     p.Parse(
                         "I have {@Fruit,-40} fruits, {Hello:u3}"),
-                    new List<LogEventProperty>
-                    {
-                        new("Fruit", new StructureValue(
-                                new List<LogEventProperty> { new("apple", new ScalarValue("apple")) }
-                                    .AsReadOnly()
+                    [
+                        new LogEventProperty("Fruit", new StructureValue(
+                                [new LogEventProperty("apple", new ScalarValue("apple"))]
                             )
                         ),
-                        new("Hello", new ScalarValue("Hello World")),
-                    }.AsReadOnly()
-                ),
 
+                        new LogEventProperty("Hello", new ScalarValue("Hello World")),
+                    ]
+                ),
             ];
         }
 
@@ -135,9 +129,9 @@ namespace Serilog.Extensions.Formatting.Test
         {
             var stringWriter = new StringWriter();
             var logEvent = new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-                new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
-                new List<LogEventProperty> { new("hello", new ScalarValue("world")) }
-                    .AsReadOnly(),
+                new MessageTemplate("hello world", []),
+                [new LogEventProperty("hello", new ScalarValue("world"))]
+                ,
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan()));
             @params.Formatter.Format(logEvent, stringWriter);
@@ -219,12 +213,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
             string message = Encoding.UTF8.GetString(stream.ToArray());
@@ -242,12 +235,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
             writer.Flush();
@@ -268,12 +260,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(sb);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
             writer.Flush();
@@ -291,9 +282,9 @@ namespace Serilog.Extensions.Formatting.Test
             using var stream = new MemoryStream();
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
-                new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
-                new List<LogEventProperty> { new("hello", new ScalarValue("world")) }
-                    .AsReadOnly(),
+                new MessageTemplate("hello world", []),
+                [new LogEventProperty("hello", new ScalarValue("world"))]
+                ,
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
             writer.Flush();
@@ -362,9 +353,9 @@ namespace Serilog.Extensions.Formatting.Test
                         {
                             Data = { ["test"] = "test2" },
                         })),
-                new MessageTemplate("hello world", new List<MessageTemplateToken>().AsReadOnly()),
-                new List<LogEventProperty> { new("hello", new ScalarValue("world")) }
-                    .AsReadOnly(),
+                new MessageTemplate("hello world", []),
+                [new LogEventProperty("hello", new ScalarValue("world"))]
+                ,
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f".AsSpan()),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532".AsSpan())), writer);
             writer.Flush();
@@ -393,12 +384,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
             writer.Flush();
@@ -417,12 +407,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
             writer.Flush();
@@ -441,12 +430,11 @@ namespace Serilog.Extensions.Formatting.Test
             using var writer = new StreamWriter(stream);
             formatter.Format(new LogEvent(_dateTimeOffset, LogEventLevel.Debug, null,
                 new MessageTemplate("hello world {Number}",
-                    new List<MessageTemplateToken> { new PropertyToken("Number", "{Number}") }.AsReadOnly()),
-                new List<LogEventProperty>
-                {
-                    new("HelloWorld", new ScalarValue("world")),
-                    new("Number", new ScalarValue(123)),
-                }.AsReadOnly(),
+                    [new PropertyToken("Number", "{Number}")]),
+                [
+                    new LogEventProperty("HelloWorld", new ScalarValue("world")),
+                    new LogEventProperty("Number", new ScalarValue(123)),
+                ],
                 ActivityTraceId.CreateFromString("3653d3ec94d045b9850794a08a4b286f"),
                 ActivitySpanId.CreateFromString("fcfb4c32a12a3532")), writer);
             writer.Flush();
