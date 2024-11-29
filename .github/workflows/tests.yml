@@ -75,12 +75,9 @@ jobs:
           dotnet test 
           --configuration Release
           --no-restore
-          --logger "GitHubActions;summary.includeSkippedTests=true"
           --logger trx
           --collect:"XPlat Code Coverage" 
           --results-directory ./coverage
-          --
-          RunConfiguration.CollectSourceInformation=true
       - name: TRX report
         if: always()
         run: dotnet trx --gh-summary true --gh-comment true
