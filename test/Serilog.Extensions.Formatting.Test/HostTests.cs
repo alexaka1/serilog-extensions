@@ -96,8 +96,8 @@ public sealed class HostTests : IDisposable
 
     public static TheoryData<HostParams> MemberData()
     {
-        int[] threads = [1, 10, 100 /*, 500*/];
-        int[] iterations = [1, 100, 1000 /*, 10000*/];
+        int[] threads = [/*1, 10,*/ 100 /*, 500*/];
+        int[] iterations = [/*1, 100,*/ 1000 /*, 10000*/];
         ITextFormatter[] formatter = [new Utf8JsonFormatter("\n", true), new JsonFormatter("\n", true)];
         var data = new List<HostParams>();
         foreach (int thread in threads)
