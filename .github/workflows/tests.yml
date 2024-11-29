@@ -78,6 +78,7 @@ jobs:
           --logger trx
           --collect:"XPlat Code Coverage" 
           --results-directory ./coverage
+          --filter FullyQualifiedName\!~HostTests
           --
           RunConfiguration.CollectSourceInformation=true
       - name: TRX report
