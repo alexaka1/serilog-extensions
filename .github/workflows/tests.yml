@@ -83,6 +83,12 @@ jobs:
       - name: TRX report
         if: always()
         run: dotnet trx --output
+      - name: TRX report upload
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: trx-reports-${{ matrix.os }}
+          path: "./**/*.trx"
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@810356ce07a94200154301fb73d878e327b2dd58 # 5.4.1
         with:
