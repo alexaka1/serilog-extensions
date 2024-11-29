@@ -23,6 +23,7 @@ jobs:
 
     permissions:
       contents: read
+      pull-requests: write
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
@@ -82,7 +83,7 @@ jobs:
           RunConfiguration.CollectSourceInformation=true
       - name: TRX report
         if: always()
-        run: dotnet trx --output
+        run: dotnet trx --output --debug
       - name: TRX report upload
         if: always()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
