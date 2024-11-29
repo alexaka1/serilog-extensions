@@ -63,6 +63,8 @@ jobs:
           dotnet-version: |
             9.0.x
             6.0.x
+      - name: dotnet tool restore
+        run: dotnet tool restore
       - name: Dotnet restore
         run: dotnet restore
       - name: Dotnet build
@@ -73,10 +75,12 @@ jobs:
           --configuration Release
           --no-restore
           --logger "GitHubActions;summary.includeSkippedTests=true"
+          --logger trx
           --collect:"XPlat Code Coverage" 
           --results-directory ./coverage
           --
-          RunConfiguration.CollectSourceInformation=true
+          RunConfiguration.CollectSourceInformation=true;
+          dotnet trx --output
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@f1927db1dbfc029b056583ee488832e939447fe6 # v5.4.4
         with:
