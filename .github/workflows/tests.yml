@@ -81,7 +81,7 @@ jobs:
           --results-directory ./coverage
       - name: TRX report
         if: ${{ !cancelled() }}
-        run: dotnet trx --gh-summary true --gh-comment true
+        run: dotnet trx --gh-summary true --gh-comment true -v verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: TRX report upload
