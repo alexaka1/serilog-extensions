@@ -58,7 +58,7 @@ jobs:
           persist-credentials: false
       - name: Setup Dotnet
         id: dotnet-setup
-        uses: actions/setup-dotnet@3e891b0cb619bf60e2c25674b222b8940e2c1c25 # v4.1.0
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4.3.0
         with:
           dotnet-version: |
             9.0.x
