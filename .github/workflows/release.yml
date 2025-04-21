@@ -71,7 +71,7 @@ jobs:
         run: corepack enable
       - name: Yarn install
         run: yarn install --immutable
-      - uses: chainguard-dev/actions/setup-gitsign@f7ef787a6b50300f8c170c153ce678b8067f5e85
+      - uses: chainguard-dev/actions/setup-gitsign@93d7e48486a0ec24d253345d8b5378a5551b7be9
       - name: Create Release Pull Request or Prepare release
         id: changesets
         uses: changesets/action@06245a4e0a36c064a573d4150030f5ec548e4fcc # v1.4.10
@@ -139,7 +139,7 @@ jobs:
         with:
           # we use credentials to push tags below
           persist-credentials: true
-      - uses: chainguard-dev/actions/setup-gitsign@f7ef787a6b50300f8c170c153ce678b8067f5e85
+      - uses: chainguard-dev/actions/setup-gitsign@93d7e48486a0ec24d253345d8b5378a5551b7be9
       - name: Download nupkg
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
