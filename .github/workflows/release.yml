@@ -74,7 +74,7 @@ jobs:
       - uses: chainguard-dev/actions/setup-gitsign@9c0be1ee0103db886d1887d114ec97f8766b7ef8
       - name: Create Release Pull Request or Prepare release
         id: changesets
-        uses: changesets/action@746c25e23caa47dceb6a48ee85b4cbc5a9f5f293 # v1.5.0
+        uses: changesets/action@001cd79f0a536e733315164543a727bdf2d70aff # v1.5.1
         with:
           # outputs versionExists=true if version already exists on nuget
           version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }}
