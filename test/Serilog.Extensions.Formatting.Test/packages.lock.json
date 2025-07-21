@@ -382,15 +382,15 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.1.0, )",
+          "Serilog": "[4.3.0, )",
           "System.Text.Json": "[9.0.0, )"
         }
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw==",
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ==",
         "dependencies": {
           "System.Diagnostics.DiagnosticSource": "8.0.1",
           "System.Threading.Channels": "8.0.0"
@@ -814,15 +814,15 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.1.0, )",
+          "Serilog": "[4.3.0, )",
           "System.Text.Json": "[9.0.0, )"
         }
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw==",
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ==",
         "dependencies": {
           "System.Diagnostics.DiagnosticSource": "8.0.1",
           "System.Threading.Channels": "8.0.0"
@@ -1168,14 +1168,14 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.1.0, )"
+          "Serilog": "[4.3.0, )"
         }
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw=="
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ=="
       },
       "System.Collections.Immutable": {
         "type": "CentralTransitive",
@@ -1485,14 +1485,14 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.1.0, )"
+          "Serilog": "[4.3.0, )"
         }
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw=="
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ=="
       },
       "System.Collections.Immutable": {
         "type": "CentralTransitive",
@@ -1797,14 +1797,14 @@
       "Alexaka1.Serilog.Extensions.Formatting": {
         "type": "Project",
         "dependencies": {
-          "Serilog": "[4.1.0, )"
+          "Serilog": "[4.3.0, )"
         }
       },
       "Serilog": {
         "type": "CentralTransitive",
-        "requested": "[4.1.0, )",
-        "resolved": "4.1.0",
-        "contentHash": "u1aZI8HZ62LWlq5dZLFwm6jMax/sUwnWZSw5lkPsCt518cJBxFKoNmc7oSxe5aA5BgSkzy9rzwFGR/i/acnSPw=="
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ=="
       },
       "System.Reflection.Metadata": {
         "type": "CentralTransitive",
