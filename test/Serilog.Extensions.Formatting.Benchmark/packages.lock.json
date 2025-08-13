@@ -69,9 +69,9 @@
       },
       "Serilog.Enrichers.Sensitive": {
         "type": "Direct",
-        "requested": "[1.7.3, )",
-        "resolved": "1.7.3",
-        "contentHash": "U/38ICup0xDMDL8TjprLDCWI16MkQTPEJfWgPROFxtGjsBf+SW1W2fMfEhdiAYLGCTSFWNXmVGdVjU58Gyr0eQ=="
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "gLlobkexEzEn7x88JsThMjf/JQfjDkx+CEt9cRO0cC1uHY0CSg5j/gr9nJGNVN+dzV6V6Be/4XApxbbDUwBh3A=="
       },
       "Serilog.Enrichers.Thread": {
         "type": "Direct",
@@ -552,9 +552,9 @@
       },
       "Serilog.Enrichers.Sensitive": {
         "type": "Direct",
-        "requested": "[1.7.3, )",
-        "resolved": "1.7.3",
-        "contentHash": "U/38ICup0xDMDL8TjprLDCWI16MkQTPEJfWgPROFxtGjsBf+SW1W2fMfEhdiAYLGCTSFWNXmVGdVjU58Gyr0eQ=="
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "gLlobkexEzEn7x88JsThMjf/JQfjDkx+CEt9cRO0cC1uHY0CSg5j/gr9nJGNVN+dzV6V6Be/4XApxbbDUwBh3A=="
       },
       "Serilog.Enrichers.Thread": {
         "type": "Direct",
@@ -1021,9 +1021,9 @@
       },
       "Serilog.Enrichers.Sensitive": {
         "type": "Direct",
-        "requested": "[1.7.3, )",
-        "resolved": "1.7.3",
-        "contentHash": "U/38ICup0xDMDL8TjprLDCWI16MkQTPEJfWgPROFxtGjsBf+SW1W2fMfEhdiAYLGCTSFWNXmVGdVjU58Gyr0eQ=="
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "gLlobkexEzEn7x88JsThMjf/JQfjDkx+CEt9cRO0cC1uHY0CSg5j/gr9nJGNVN+dzV6V6Be/4XApxbbDUwBh3A=="
       },
       "Serilog.Enrichers.Thread": {
         "type": "Direct",
@@ -1422,9 +1422,9 @@
       },
       "Serilog.Enrichers.Sensitive": {
         "type": "Direct",
-        "requested": "[1.7.3, )",
-        "resolved": "1.7.3",
-        "contentHash": "U/38ICup0xDMDL8TjprLDCWI16MkQTPEJfWgPROFxtGjsBf+SW1W2fMfEhdiAYLGCTSFWNXmVGdVjU58Gyr0eQ=="
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "gLlobkexEzEn7x88JsThMjf/JQfjDkx+CEt9cRO0cC1uHY0CSg5j/gr9nJGNVN+dzV6V6Be/4XApxbbDUwBh3A=="
       },
       "Serilog.Enrichers.Thread": {
         "type": "Direct",
@@ -1758,9 +1758,9 @@
       },
       "Serilog.Enrichers.Sensitive": {
         "type": "Direct",
-        "requested": "[1.7.3, )",
-        "resolved": "1.7.3",
-        "contentHash": "U/38ICup0xDMDL8TjprLDCWI16MkQTPEJfWgPROFxtGjsBf+SW1W2fMfEhdiAYLGCTSFWNXmVGdVjU58Gyr0eQ=="
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "gLlobkexEzEn7x88JsThMjf/JQfjDkx+CEt9cRO0cC1uHY0CSg5j/gr9nJGNVN+dzV6V6Be/4XApxbbDUwBh3A=="
       },
       "Serilog.Enrichers.Thread": {
         "type": "Direct",
