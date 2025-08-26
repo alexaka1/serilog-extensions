@@ -43,7 +43,8 @@ public class Program
     {
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(), stringWriter))
+            .MinimumLevel.Verbose()
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
             .CreateLogger();
             
         logger.Information("Hello, {Name}!", "World");
@@ -58,7 +59,8 @@ public class Program
     {
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(), stringWriter))
+            .MinimumLevel.Verbose()
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
             .CreateLogger();
             
         var complexObject = new
@@ -80,7 +82,8 @@ public class Program
     {
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(), stringWriter))
+            .MinimumLevel.Verbose()
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
             .CreateLogger();
             
         try
@@ -113,15 +116,15 @@ public class Program
                 // Validate that each line is valid JSON
                 using var doc = JsonDocument.Parse(line);
                 
-                // Ensure basic structure exists
-                if (!doc.RootElement.TryGetProperty("Timestamp", out _))
-                    throw new InvalidOperationException($"Missing Timestamp property in {testName}");
+                // Ensure basic structure exists with camelCase property names
+                if (!doc.RootElement.TryGetProperty("timestamp", out _))
+                    throw new InvalidOperationException($"Missing timestamp property in {testName}");
                     
-                if (!doc.RootElement.TryGetProperty("Level", out _))
-                    throw new InvalidOperationException($"Missing Level property in {testName}");
+                if (!doc.RootElement.TryGetProperty("level", out _))
+                    throw new InvalidOperationException($"Missing level property in {testName}");
                     
-                if (!doc.RootElement.TryGetProperty("MessageTemplate", out _))
-                    throw new InvalidOperationException($"Missing MessageTemplate property in {testName}");
+                if (!doc.RootElement.TryGetProperty("messageTemplate", out _))
+                    throw new InvalidOperationException($"Missing messageTemplate property in {testName}");
             }
             catch (JsonException ex)
             {

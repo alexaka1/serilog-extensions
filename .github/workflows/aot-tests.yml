@@ -18,7 +18,9 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - ubuntu-24.04-arm
           - windows-latest
+          - windows-11-arm
           - macos-latest
         dotnet-version:
           - '8.0.x'
@@ -81,19 +83,30 @@ jobs:
             echo "runtime-identifier=net9.0" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set runtime identifier
+      - name: Set runtime identifier and architecture
         id: runtime-id
         shell: bash
         run: |
           case "${{ matrix.os }}" in
             ubuntu-latest)
               echo "runtime-id=linux-x64" >> $GITHUB_OUTPUT
+              echo "arch=x64" >> $GITHUB_OUTPUT
+              ;;
+            ubuntu-24.04-arm)
+              echo "runtime-id=linux-arm64" >> $GITHUB_OUTPUT
+              echo "arch=arm64" >> $GITHUB_OUTPUT
               ;;
             windows-latest)
               echo "runtime-id=win-x64" >> $GITHUB_OUTPUT
+              echo "arch=x64" >> $GITHUB_OUTPUT
+              ;;
+            windows-11-arm)
+              echo "runtime-id=win-arm64" >> $GITHUB_OUTPUT
+              echo "arch=arm64" >> $GITHUB_OUTPUT
               ;;
             macos-latest)
               echo "runtime-id=osx-x64" >> $GITHUB_OUTPUT
+              echo "arch=x64" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "Unsupported OS: ${{ matrix.os }}"
@@ -105,7 +118,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Dotnet restore
-        run: dotnet restore
+        run: dotnet restore --runtime ${{ steps.runtime-id.outputs.runtime-id }}
 
       - name: Test AOT test project normally (pre-flight)
         run: >
@@ -121,7 +134,6 @@ jobs:
           --configuration Release
           --framework ${{ steps.target-framework.outputs.target-framework }}
           --runtime ${{ steps.runtime-id.outputs.runtime-id }}
-          --self-contained
           --no-restore
 
       - name: Test AOT published executable (Windows)
