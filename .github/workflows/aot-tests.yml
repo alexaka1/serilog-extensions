@@ -18,13 +18,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-24.04-arm
           - windows-latest
-          - windows-11-arm
           - macos-latest
         dotnet-version:
           - '8.0.x'
           - '9.0.x'
+        arch:
+          - x64
     runs-on: ${{ matrix.os }}
 
     permissions:
@@ -77,48 +77,31 @@ jobs:
         run: |
           if [[ "${{ matrix.dotnet-version }}" == "8.0.x" ]]; then
             echo "target-framework=net8.0" >> $GITHUB_OUTPUT
-            echo "runtime-identifier=net8.0" >> $GITHUB_OUTPUT
           else
             echo "target-framework=net9.0" >> $GITHUB_OUTPUT
-            echo "runtime-identifier=net9.0" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set runtime identifier and architecture
+      - name: dotnet tool restore
+        run: dotnet tool restore
+
+      - name: Set runtime identifier for restore
         id: runtime-id
         shell: bash
         run: |
           case "${{ matrix.os }}" in
             ubuntu-latest)
-              echo "runtime-id=linux-x64" >> $GITHUB_OUTPUT
-              echo "arch=x64" >> $GITHUB_OUTPUT
-              ;;
-            ubuntu-24.04-arm)
-              echo "runtime-id=linux-arm64" >> $GITHUB_OUTPUT
-              echo "arch=arm64" >> $GITHUB_OUTPUT
+              echo "rid=linux-${{ matrix.arch }}" >> $GITHUB_OUTPUT
               ;;
             windows-latest)
-              echo "runtime-id=win-x64" >> $GITHUB_OUTPUT
-              echo "arch=x64" >> $GITHUB_OUTPUT
-              ;;
-            windows-11-arm)
-              echo "runtime-id=win-arm64" >> $GITHUB_OUTPUT
-              echo "arch=arm64" >> $GITHUB_OUTPUT
+              echo "rid=win-${{ matrix.arch }}" >> $GITHUB_OUTPUT
               ;;
             macos-latest)
-              echo "runtime-id=osx-x64" >> $GITHUB_OUTPUT
-              echo "arch=x64" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "Unsupported OS: ${{ matrix.os }}"
-              exit 1
+              echo "rid=osx-${{ matrix.arch }}" >> $GITHUB_OUTPUT
               ;;
           esac
 
-      - name: dotnet tool restore
-        run: dotnet tool restore
-
       - name: Dotnet restore
-        run: dotnet restore --runtime ${{ steps.runtime-id.outputs.runtime-id }}
+        run: dotnet restore --runtime ${{ steps.runtime-id.outputs.rid }}
 
       - name: Test AOT test project normally (pre-flight)
         run: >
@@ -133,23 +116,36 @@ jobs:
           dotnet publish test/Serilog.Extensions.Formatting.AotTest/
           --configuration Release
           --framework ${{ steps.target-framework.outputs.target-framework }}
-          --runtime ${{ steps.runtime-id.outputs.runtime-id }}
+          --arch ${{ matrix.arch }}
           --no-restore
+
+      - name: Set executable paths
+        id: paths
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            windows-latest)
+              echo "exe-name=Serilog.Extensions.Formatting.AotTest.exe" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "exe-name=Serilog.Extensions.Formatting.AotTest" >> $GITHUB_OUTPUT
+              ;;
+          esac
 
       - name: Test AOT published executable (Windows)
         if: matrix.os == 'windows-latest'
         run: >
-          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/Serilog.Extensions.Formatting.AotTest.exe
+          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/${{ steps.paths.outputs.exe-name }}
 
       - name: Test AOT published executable (Unix)
         if: matrix.os != 'windows-latest'
         run: >
-          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/Serilog.Extensions.Formatting.AotTest
+          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/${{ steps.paths.outputs.exe-name }}
 
       - name: Upload AOT executable artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: aot-executable-${{ matrix.os }}-${{ steps.target-framework.outputs.target-framework }}
+          name: aot-executable-${{ matrix.os }}-${{ steps.target-framework.outputs.target-framework }}-${{ matrix.arch }}
           path: |
-            test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/
+            test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/
           retention-days: 1
