@@ -42,12 +42,12 @@ jobs:
             8.0.x
             6.0.x
       - name: Install deps (Ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y mono-complete clang zlib1g-dev
       - name: Install deps (macOS)
-        if: startsWith(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
           HOMEBREW_NO_ANALYTICS: 1
