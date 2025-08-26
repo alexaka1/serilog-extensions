@@ -10,6 +10,16 @@ using Serilog.Formatting;
 namespace Serilog.Extensions.Formatting.AotTest;
 
 /// <summary>
+/// Enumeration of test cases for AOT validation
+/// </summary>
+public enum AotTestCase
+{
+    BasicLogging,
+    ComplexObjectLogging,
+    ExceptionLogging
+}
+
+/// <summary>
 /// AOT compatibility test program that exercises the Utf8JsonFormatter.
 /// This program is designed to be published with AOT and executed to verify
 /// that the library works correctly in AOT scenarios.
@@ -52,7 +62,7 @@ public class Program
         logger.Warning("Warning message");
         
         var output = stringWriter.ToString();
-        ValidateJsonOutput(output, "basic logging");
+        ValidateJsonOutput(output, AotTestCase.BasicLogging);
     }
     
     private static void TestComplexObjectLogging()
@@ -75,7 +85,7 @@ public class Program
         logger.Information("Complex object: {@Object}", complexObject);
         
         var output = stringWriter.ToString();
-        ValidateJsonOutput(output, "complex object logging");
+        ValidateJsonOutput(output, AotTestCase.ComplexObjectLogging);
     }
     
     private static void TestExceptionLogging()
@@ -96,13 +106,13 @@ public class Program
         }
         
         var output = stringWriter.ToString();
-        ValidateJsonOutput(output, "exception logging");
+        ValidateJsonOutput(output, AotTestCase.ExceptionLogging);
     }
     
-    private static void ValidateJsonOutput(string output, string testName)
+    private static void ValidateJsonOutput(string output, AotTestCase testCase)
     {
         if (string.IsNullOrWhiteSpace(output))
-            throw new InvalidOperationException($"No output generated for {testName}");
+            throw new InvalidOperationException($"No output generated for {testCase}");
             
         var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         
@@ -119,71 +129,71 @@ public class Program
                 
                 // Ensure basic structure exists with camelCase property names
                 if (!root.TryGetProperty("timestamp", out var timestamp))
-                    throw new InvalidOperationException($"Missing timestamp property (should be camelCase) in {testName}");
+                    throw new InvalidOperationException($"Missing timestamp property (should be camelCase) in {testCase}");
                     
                 if (!root.TryGetProperty("level", out var level))
-                    throw new InvalidOperationException($"Missing level property (should be camelCase) in {testName}");
+                    throw new InvalidOperationException($"Missing level property (should be camelCase) in {testCase}");
                     
                 if (!root.TryGetProperty("messageTemplate", out var messageTemplate))
-                    throw new InvalidOperationException($"Missing messageTemplate property (should be camelCase) in {testName}");
+                    throw new InvalidOperationException($"Missing messageTemplate property (should be camelCase) in {testCase}");
                 
                 // Validate property values are correctly rendered
                 var timestampStr = timestamp.GetString();
                 if (string.IsNullOrEmpty(timestampStr) || !DateTimeOffset.TryParse(timestampStr, out _))
-                    throw new InvalidOperationException($"Invalid timestamp format in {testName}: {timestampStr}");
+                    throw new InvalidOperationException($"Invalid timestamp format in {testCase}: {timestampStr}");
                 
                 var levelStr = level.GetString();
                 if (string.IsNullOrEmpty(levelStr))
-                    throw new InvalidOperationException($"Empty level property in {testName}");
+                    throw new InvalidOperationException($"Empty level property in {testCase}");
                 
                 var messageTemplateStr = messageTemplate.GetString();
                 if (string.IsNullOrEmpty(messageTemplateStr))
-                    throw new InvalidOperationException($"Empty messageTemplate property in {testName}");
+                    throw new InvalidOperationException($"Empty messageTemplate property in {testCase}");
                 
                 // Check if rendered message exists and contains expected content
                 if (root.TryGetProperty("renderedMessage", out var renderedMessage))
                 {
                     var renderedStr = renderedMessage.GetString();
-                    if (testName.Contains("basic logging") && renderedStr.Contains("Hello, {Name}!"))
-                        throw new InvalidOperationException($"Message template not properly rendered in {testName}: {renderedStr}");
+                    if (testCase == AotTestCase.BasicLogging && renderedStr.Contains("Hello, {Name}!"))
+                        throw new InvalidOperationException($"Message template not properly rendered in {testCase}: {renderedStr}");
                 }
                 
                 // For complex object tests, check if properties exist and are properly rendered
-                if (testName.Contains("complex object") && root.TryGetProperty("properties", out var properties))
+                if (testCase == AotTestCase.ComplexObjectLogging && root.TryGetProperty("properties", out var properties))
                 {
                     if (properties.TryGetProperty("Object", out var objectProp))
                     {
                         // Verify nested object properties are camelCase
                         if (objectProp.TryGetProperty("name", out var name) && name.GetString() != "Test Object")
-                            throw new InvalidOperationException($"Object.name property not properly rendered in {testName}");
+                            throw new InvalidOperationException($"Object.name property not properly rendered in {testCase}");
                         
                         if (objectProp.TryGetProperty("value", out var value) && Math.Abs(value.GetDouble() - 123.45) > 0.01)
-                            throw new InvalidOperationException($"Object.value property not properly rendered in {testName}");
+                            throw new InvalidOperationException($"Object.value property not properly rendered in {testCase}");
                         
                         if (objectProp.TryGetProperty("tags", out var tags) && tags.GetArrayLength() != 2)
-                            throw new InvalidOperationException($"Object.tags array not properly rendered in {testName}");
+                            throw new InvalidOperationException($"Object.tags array not properly rendered in {testCase}");
                         
                         if (objectProp.TryGetProperty("nested", out var nested) && nested.TryGetProperty("innerValue", out var innerValue) && innerValue.GetString() != "nested")
-                            throw new InvalidOperationException($"Object.nested.innerValue not properly rendered in {testName}");
+                            throw new InvalidOperationException($"Object.nested.innerValue not properly rendered in {testCase}");
                     }
                 }
                 
                 // For exception tests, check if exception property exists
-                if (testName.Contains("exception") && !root.TryGetProperty("exception", out _))
-                    throw new InvalidOperationException($"Missing exception property in {testName}");
+                if (testCase == AotTestCase.ExceptionLogging && !root.TryGetProperty("exception", out _))
+                    throw new InvalidOperationException($"Missing exception property in {testCase}");
                 
                 // Verify that PascalCase properties don't exist (should be camelCase)
                 if (root.TryGetProperty("Timestamp", out _) || root.TryGetProperty("Level", out _) || root.TryGetProperty("MessageTemplate", out _))
-                    throw new InvalidOperationException($"Found PascalCase properties instead of camelCase in {testName}");
+                    throw new InvalidOperationException($"Found PascalCase properties instead of camelCase in {testCase}");
                 
             }
             catch (JsonException ex)
             {
-                throw new InvalidOperationException($"Invalid JSON in {testName}: {ex.Message}\nJSON: {line}");
+                throw new InvalidOperationException($"Invalid JSON in {testCase}: {ex.Message}\nJSON: {line}");
             }
         }
         
-        Console.WriteLine($"PASS: {testName} - Generated {lines.Length} valid JSON log entries with correct camelCase formatting");
+        Console.WriteLine($"PASS: {testCase} - Generated {lines.Length} valid JSON log entries with correct camelCase formatting");
     }
 }
 
