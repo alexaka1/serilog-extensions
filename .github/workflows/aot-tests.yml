@@ -22,9 +22,9 @@ jobs:
           - macos-latest
           - ubuntu-24.04-arm
           - windows-11-arm
-        dotnet-version:
-          - '8.0.x'
-          - '9.0.x'
+        tfm:
+          - 'net8.0'
+          - 'net9.0'
     runs-on: ${{ matrix.os }}
 
     permissions:
@@ -72,17 +72,6 @@ jobs:
           dotnet-version: |
             8.0.x
             9.0.x
-
-      - name: Set target framework
-        id: target-framework
-        shell: bash
-        run: |
-          if [[ "${{ matrix.dotnet-version }}" == "8.0.x" ]]; then
-            echo "target-framework=net8.0" >> $GITHUB_OUTPUT
-          else
-            echo "target-framework=net9.0" >> $GITHUB_OUTPUT
-          fi
-
       - name: Set architecture
         id: architecture
         shell: bash
@@ -97,17 +86,15 @@ jobs:
           dotnet run
           --project test/Serilog.Extensions.Formatting.AotTest/
           --configuration Release 
-          --framework ${{ steps.target-framework.outputs.target-framework }}
-          --no-restore
+          --framework ${{ matrix.tfm }}
 
       - name: AOT Publish
         run: >
           dotnet publish test/Serilog.Extensions.Formatting.AotTest/
           --configuration Release
-          --framework ${{ steps.target-framework.outputs.target-framework }}
+          --framework ${{ matrix.tfm }}
           --arch ${{ steps.architecture.outputs.arch }}
           --output ./aot-output
-          --no-restore
 
       - name: Test AOT published executable
         shell: bash
@@ -121,6 +108,6 @@ jobs:
       - name: Upload AOT executable artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aot-executable-${{ matrix.os }}-${{ steps.target-framework.outputs.target-framework }}-${{ steps.architecture.outputs.arch }}
+          name: aot-executable-${{ matrix.os }}-${{ matrix.tfm }}-${{ steps.architecture.outputs.arch }}
           path: ./aot-output/
           retention-days: 1
