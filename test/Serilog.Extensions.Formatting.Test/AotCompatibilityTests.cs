@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -12,8 +13,10 @@ public class AotCompatibilityTests(ITestOutputHelper output)
 {
     private readonly ITestOutputHelper _output = output;
 
-    [Fact]
-    public void AotCompiledApplication_ProducesValidJsonOutput()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net9.0")]
+    public void AotCompiledApplication_ProducesValidJsonOutput(string targetFramework)
     {
         // This test verifies that the library can be used in an AOT-compiled application
         // and still produces valid JSON output
@@ -28,19 +31,37 @@ public class AotCompatibilityTests(ITestOutputHelper output)
         
         Assert.NotNull(solutionRoot);
         
+        // Determine runtime identifier and executable extension based on current platform
+        string rid, exeExt;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            rid = "win-x64";
+            exeExt = ".exe";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            rid = "osx-x64";
+            exeExt = "";
+        }
+        else
+        {
+            rid = "linux-x64";
+            exeExt = "";
+        }
+        
         var publishDir = Path.Combine(
             solutionRoot.FullName,
             "test", "Serilog.Extensions.Formatting.AotTest", 
-            "bin", "Release", "net8.0", "linux-x64", "publish"
+            "bin", "Release", targetFramework, rid, "publish"
         );
-        var executablePath = Path.Combine(publishDir, "Serilog.Extensions.Formatting.AotTest");
+        var executablePath = Path.Combine(publishDir, $"Serilog.Extensions.Formatting.AotTest{exeExt}");
         
         // Skip test if AOT executable doesn't exist
         if (!File.Exists(executablePath))
         {
             _output.WriteLine($"AOT executable not found at: {executablePath}");
-            _output.WriteLine("Run 'dotnet publish -c Release -r linux-x64' on the AotTest project to generate the AOT executable");
-            throw new SkipException("AOT executable not available. Run AOT publish first.");
+            _output.WriteLine($"Run 'dotnet publish -c Release -r {rid} -f {targetFramework}' on the AotTest project to generate the AOT executable");
+            throw new SkipException($"AOT executable not available for {targetFramework} on {rid}. Run AOT publish first.");
         }
         
         // Run the AOT-compiled executable
@@ -61,6 +82,8 @@ public class AotCompatibilityTests(ITestOutputHelper output)
         var errorOutput = process.StandardError.ReadToEnd();
         process.WaitForExit();
         
+        _output.WriteLine($"Target Framework: {targetFramework}");
+        _output.WriteLine($"Runtime ID: {rid}");
         _output.WriteLine($"Exit code: {process.ExitCode}");
         _output.WriteLine($"Standard output: {output}");
         if (!string.IsNullOrEmpty(errorOutput))
@@ -91,8 +114,10 @@ public class AotCompatibilityTests(ITestOutputHelper output)
         Assert.True(jsonDoc.RootElement.TryGetProperty("Properties", out _));
     }
     
-    [Fact]
-    public void AotTestProject_CanBuild()
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net9.0")]
+    public void AotTestProject_CanBuild(string targetFramework)
     {
         // This test ensures the AOT test project can at least build
         // even if we can't run AOT compilation in all environments
@@ -120,6 +145,9 @@ public class AotCompatibilityTests(ITestOutputHelper output)
         Assert.Contains("<PublishAot>true</PublishAot>", projectContent);
         Assert.Contains("<InvariantGlobalization>true</InvariantGlobalization>", projectContent);
         Assert.Contains("<EnableAotAnalyzer>true</EnableAotAnalyzer>", projectContent);
+        Assert.Contains("<TargetFrameworks>net8.0;net9.0</TargetFrameworks>", projectContent);
+        
+        _output.WriteLine($"AOT test project verified for {targetFramework}");
     }
 }
 

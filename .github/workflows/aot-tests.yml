@@ -1,0 +1,133 @@
+name: AOT Tests
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+  workflow_call:
+permissions: { }
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+jobs:
+  aot-test:
+    name: AOT Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        tfm:
+          - net8.0
+          - net9.0
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          disable-sudo: false
+          egress-policy: block
+          allowed-endpoints: >
+            aka.ms:443
+            api.nuget.org:443
+            crl3.digicert.com:80
+            crl4.digicert.com:80
+            dc.services.visualstudio.com:443
+            dotnetbuilds.azureedge.net:443
+            dotnetcli.azureedge.net:443
+            s.symcb.com:80
+            ts-crl.ws.symantec.com:80
+            www.microsoft.com:80
+            github.com:443
+            results-receiver.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+            api.github.com:443
+            *.actions.githubusercontent.com:443
+            codeload.github.com:443
+            ghcr.io:443
+            *.actions.githubusercontent.com:443
+            objects.githubusercontent.com:443
+            objects-origin.githubusercontent.com:443
+            github-releases.githubusercontent.com:443
+            github-registry-files.githubusercontent.com:443
+            # Ubuntu APT mirrors for installing mono
+            azure.archive.ubuntu.com:80
+            archive.ubuntu.com:80
+            security.ubuntu.com:80
+            packages.microsoft.com:443
+            # Homebrew formula metadata (mono)
+            formulae.brew.sh:443
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Setup Dotnet
+        id: dotnet-setup
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: |
+            9.0.x
+            8.0.x
+            6.0.x
+      - name: Set Runtime Identifier
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            echo "RID=win-x64" >> $GITHUB_ENV
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            echo "RID=osx-x64" >> $GITHUB_ENV
+          else
+            echo "RID=linux-x64" >> $GITHUB_ENV
+          fi
+      - name: dotnet tool restore
+        run: dotnet tool restore
+      - name: Dotnet restore
+        run: dotnet restore
+      - name: Dotnet build
+        run: dotnet build --configuration Release --no-restore
+      - name: Build AOT Test Project
+        run: dotnet build test/Serilog.Extensions.Formatting.AotTest/Serilog.Extensions.Formatting.AotTest.csproj -c Release --no-restore -f ${{ matrix.tfm }}
+      - name: Test Regular Run
+        run: dotnet run --project test/Serilog.Extensions.Formatting.AotTest/Serilog.Extensions.Formatting.AotTest.csproj -c Release --no-build -f ${{ matrix.tfm }}
+      - name: Publish AOT
+        run: dotnet publish test/Serilog.Extensions.Formatting.AotTest/Serilog.Extensions.Formatting.AotTest.csproj -c Release -r ${{ env.RID }} --no-restore -f ${{ matrix.tfm }}
+      - name: Test AOT Executable (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $executable = "test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ matrix.tfm }}/${{ env.RID }}/publish/Serilog.Extensions.Formatting.AotTest.exe"
+          & $executable
+      - name: Test AOT Executable (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          executable="test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ matrix.tfm }}/${{ env.RID }}/publish/Serilog.Extensions.Formatting.AotTest"
+          chmod +x "$executable"
+          "$executable"
+      - name: Run AOT Integration Tests
+        run: |
+          dotnet build test/Serilog.Extensions.Formatting.Test/Serilog.Extensions.Formatting.Test.csproj -c Release -f ${{ matrix.tfm }} --no-restore
+          dotnet test test/Serilog.Extensions.Formatting.Test/Serilog.Extensions.Formatting.Test.csproj -c Release --no-build --filter "AotCompatibilityTests" --logger "console;verbosity=normal" -f ${{ matrix.tfm }}
+      - name: Report AOT Binary Size
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            executable="test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ matrix.tfm }}/${{ env.RID }}/publish/Serilog.Extensions.Formatting.AotTest.exe"
+          else
+            executable="test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ matrix.tfm }}/${{ env.RID }}/publish/Serilog.Extensions.Formatting.AotTest"
+          fi
+          
+          echo "## AOT Binary Size Report - ${{ runner.os }} ${{ matrix.tfm }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Executable Size" >> $GITHUB_STEP_SUMMARY
+          ls -lah "$executable" >> $GITHUB_STEP_SUMMARY || echo "Could not determine file size" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Total Published Directory Size" >> $GITHUB_STEP_SUMMARY
+          du -sh "test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ matrix.tfm }}/${{ env.RID }}/publish/" >> $GITHUB_STEP_SUMMARY || echo "Could not determine directory size" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
