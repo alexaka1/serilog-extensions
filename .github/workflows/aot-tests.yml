@@ -69,7 +69,9 @@ jobs:
         id: dotnet-setup
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Set target framework
         id: target-framework
@@ -104,63 +106,21 @@ jobs:
           --configuration Release
           --framework ${{ steps.target-framework.outputs.target-framework }}
           --arch ${{ steps.architecture.outputs.arch }}
+          --output ./aot-output
           --no-restore
 
-      - name: Set runtime identifier for paths
-        id: runtime-id
+      - name: Test AOT published executable
         shell: bash
         run: |
-          case "${{ matrix.os }}" in
-            ubuntu-latest|ubuntu-24.04-arm)
-              if [[ "${{ steps.architecture.outputs.arch }}" == "arm64" ]]; then
-                echo "rid=linux-arm64" >> $GITHUB_OUTPUT
-              else
-                echo "rid=linux-x64" >> $GITHUB_OUTPUT
-              fi
-              ;;
-            windows-latest|windows-11-arm)
-              if [[ "${{ steps.architecture.outputs.arch }}" == "arm64" ]]; then
-                echo "rid=win-arm64" >> $GITHUB_OUTPUT
-              else
-                echo "rid=win-x64" >> $GITHUB_OUTPUT
-              fi
-              ;;
-            macos-latest)
-              if [[ "${{ steps.architecture.outputs.arch }}" == "arm64" ]]; then
-                echo "rid=osx-arm64" >> $GITHUB_OUTPUT
-              else
-                echo "rid=osx-x64" >> $GITHUB_OUTPUT
-              fi
-              ;;
-          esac
-
-      - name: Set executable paths
-        id: paths
-        shell: bash
-        run: |
-          case "${{ matrix.os }}" in
-            windows-latest|windows-11-arm)
-              echo "exe-name=Serilog.Extensions.Formatting.AotTest.exe" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "exe-name=Serilog.Extensions.Formatting.AotTest" >> $GITHUB_OUTPUT
-              ;;
-          esac
-
-      - name: Test AOT published executable (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: >
-          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/${{ steps.paths.outputs.exe-name }}
-
-      - name: Test AOT published executable (Unix)
-        if: "!startsWith(matrix.os, 'windows')"
-        run: >
-          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/${{ steps.paths.outputs.exe-name }}
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./aot-output/Serilog.Extensions.Formatting.AotTest.exe
+          else
+            ./aot-output/Serilog.Extensions.Formatting.AotTest
+          fi
 
       - name: Upload AOT executable artifact
         uses: actions/upload-artifact@v4
         with:
           name: aot-executable-${{ matrix.os }}-${{ steps.target-framework.outputs.target-framework }}-${{ steps.architecture.outputs.arch }}
-          path: |
-            test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.rid }}/publish/
+          path: ./aot-output/
           retention-days: 1

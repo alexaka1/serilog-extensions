@@ -115,16 +115,67 @@ public class Program
             {
                 // Validate that each line is valid JSON
                 using var doc = JsonDocument.Parse(line);
+                var root = doc.RootElement;
                 
                 // Ensure basic structure exists with camelCase property names
-                if (!doc.RootElement.TryGetProperty("timestamp", out _))
-                    throw new InvalidOperationException($"Missing timestamp property in {testName}");
+                if (!root.TryGetProperty("timestamp", out var timestamp))
+                    throw new InvalidOperationException($"Missing timestamp property (should be camelCase) in {testName}");
                     
-                if (!doc.RootElement.TryGetProperty("level", out _))
-                    throw new InvalidOperationException($"Missing level property in {testName}");
+                if (!root.TryGetProperty("level", out var level))
+                    throw new InvalidOperationException($"Missing level property (should be camelCase) in {testName}");
                     
-                if (!doc.RootElement.TryGetProperty("messageTemplate", out _))
-                    throw new InvalidOperationException($"Missing messageTemplate property in {testName}");
+                if (!root.TryGetProperty("messageTemplate", out var messageTemplate))
+                    throw new InvalidOperationException($"Missing messageTemplate property (should be camelCase) in {testName}");
+                
+                // Validate property values are correctly rendered
+                var timestampStr = timestamp.GetString();
+                if (string.IsNullOrEmpty(timestampStr) || !DateTimeOffset.TryParse(timestampStr, out _))
+                    throw new InvalidOperationException($"Invalid timestamp format in {testName}: {timestampStr}");
+                
+                var levelStr = level.GetString();
+                if (string.IsNullOrEmpty(levelStr))
+                    throw new InvalidOperationException($"Empty level property in {testName}");
+                
+                var messageTemplateStr = messageTemplate.GetString();
+                if (string.IsNullOrEmpty(messageTemplateStr))
+                    throw new InvalidOperationException($"Empty messageTemplate property in {testName}");
+                
+                // Check if rendered message exists and contains expected content
+                if (root.TryGetProperty("renderedMessage", out var renderedMessage))
+                {
+                    var renderedStr = renderedMessage.GetString();
+                    if (testName.Contains("basic logging") && renderedStr.Contains("Hello, {Name}!"))
+                        throw new InvalidOperationException($"Message template not properly rendered in {testName}: {renderedStr}");
+                }
+                
+                // For complex object tests, check if properties exist and are properly rendered
+                if (testName.Contains("complex object") && root.TryGetProperty("properties", out var properties))
+                {
+                    if (properties.TryGetProperty("Object", out var objectProp))
+                    {
+                        // Verify nested object properties are camelCase
+                        if (objectProp.TryGetProperty("name", out var name) && name.GetString() != "Test Object")
+                            throw new InvalidOperationException($"Object.name property not properly rendered in {testName}");
+                        
+                        if (objectProp.TryGetProperty("value", out var value) && Math.Abs(value.GetDouble() - 123.45) > 0.01)
+                            throw new InvalidOperationException($"Object.value property not properly rendered in {testName}");
+                        
+                        if (objectProp.TryGetProperty("tags", out var tags) && tags.GetArrayLength() != 2)
+                            throw new InvalidOperationException($"Object.tags array not properly rendered in {testName}");
+                        
+                        if (objectProp.TryGetProperty("nested", out var nested) && nested.TryGetProperty("innerValue", out var innerValue) && innerValue.GetString() != "nested")
+                            throw new InvalidOperationException($"Object.nested.innerValue not properly rendered in {testName}");
+                    }
+                }
+                
+                // For exception tests, check if exception property exists
+                if (testName.Contains("exception") && !root.TryGetProperty("exception", out _))
+                    throw new InvalidOperationException($"Missing exception property in {testName}");
+                
+                // Verify that PascalCase properties don't exist (should be camelCase)
+                if (root.TryGetProperty("Timestamp", out _) || root.TryGetProperty("Level", out _) || root.TryGetProperty("MessageTemplate", out _))
+                    throw new InvalidOperationException($"Found PascalCase properties instead of camelCase in {testName}");
+                
             }
             catch (JsonException ex)
             {
@@ -132,7 +183,7 @@ public class Program
             }
         }
         
-        Console.WriteLine($"PASS: {testName} - Generated {lines.Length} valid JSON log entries");
+        Console.WriteLine($"PASS: {testName} - Generated {lines.Length} valid JSON log entries with correct camelCase formatting");
     }
 }
 
