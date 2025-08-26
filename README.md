@@ -1,6 +1,6 @@
 # Alexaka1.Serilog.Extensions.Formatting
 
-[![NuGet Version](https://img.shields.io/nuget/v/Alexaka1.Serilog.Extensions.Formatting)](https://www.nuget.org/packages/Alexaka1.Serilog.Extensions.Formatting)  
+[![NuGet Version](https://img.shields.io/nuget/v/Alexaka1.Serilog.Extensions.Formatting)](https://www.nuget.org/packages/Alexaka1.Serilog.Extensions.Formatting)
 [![Copilot Setup Steps](https://github.com/alexaka1/serilog-extensions/actions/workflows/copilot-setup-steps.yml/badge.svg?branch=main)](https://github.com/alexaka1/serilog-extensions/actions/workflows/copilot-setup-steps.yml)
 
 ## Utf8JsonFormatter
