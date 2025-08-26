@@ -42,3 +42,24 @@ The `Utf8JsonFormatter` constructor accepts the following options:
 # Why?
 
 I specifically had a use-case in a project which required logs to be in `camelCase`, and none of the built-in formatters supported that, not even `ExpressionTemplate`, since I couldn't find a way to specify a custom `JsonNamingPolicy` for properties.
+
+## AOT Compatibility
+
+This library is fully compatible with .NET's Native AOT compilation. All features work correctly when the application is compiled ahead-of-time, including:
+
+- JSON formatting and output
+- Custom naming policies  
+- Property serialization
+- Exception handling and formatting
+
+To test AOT compatibility:
+
+```bash
+# Run AOT compatibility tests
+dotnet test --filter "AotCompatibilityTests"
+
+# Run complete AOT validation pipeline
+./build/test-aot.sh
+```
+
+See the [AOT test project](./test/Serilog.Extensions.Formatting.AotTest/) for a complete example of using this library in an AOT-compiled application.
