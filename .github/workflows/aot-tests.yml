@@ -1,0 +1,143 @@
+name: AOT Tests
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+  workflow_call:
+permissions: { }
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+jobs:
+  aot-test:
+    name: AOT Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        dotnet-version:
+          - '8.0.x'
+          - '9.0.x'
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          disable-sudo: false
+          egress-policy: block
+          allowed-endpoints: >
+            aka.ms:443
+            api.nuget.org:443
+            crl3.digicert.com:80
+            crl4.digicert.com:80
+            dc.services.visualstudio.com:443
+            dotnetbuilds.azureedge.net:443
+            dotnetcli.azureedge.net:443
+            s.symcb.com:80
+            ts-crl.ws.symantec.com:80
+            www.microsoft.com:80
+            github.com:443
+            results-receiver.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+            api.github.com:443
+            *.actions.githubusercontent.com:443
+            codeload.github.com:443
+            ghcr.io:443
+            *.actions.githubusercontent.com:443
+            objects.githubusercontent.com:443
+            objects-origin.githubusercontent.com:443
+            github-releases.githubusercontent.com:443
+            github-registry-files.githubusercontent.com:443
+
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Dotnet
+        id: dotnet-setup
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Set target framework
+        id: target-framework
+        shell: bash
+        run: |
+          if [[ "${{ matrix.dotnet-version }}" == "8.0.x" ]]; then
+            echo "target-framework=net8.0" >> $GITHUB_OUTPUT
+            echo "runtime-identifier=net8.0" >> $GITHUB_OUTPUT
+          else
+            echo "target-framework=net9.0" >> $GITHUB_OUTPUT
+            echo "runtime-identifier=net9.0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set runtime identifier
+        id: runtime-id
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            ubuntu-latest)
+              echo "runtime-id=linux-x64" >> $GITHUB_OUTPUT
+              ;;
+            windows-latest)
+              echo "runtime-id=win-x64" >> $GITHUB_OUTPUT
+              ;;
+            macos-latest)
+              echo "runtime-id=osx-x64" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unsupported OS: ${{ matrix.os }}"
+              exit 1
+              ;;
+          esac
+
+      - name: dotnet tool restore
+        run: dotnet tool restore
+
+      - name: Dotnet restore
+        run: dotnet restore
+
+      - name: Test AOT test project normally (pre-flight)
+        run: >
+          dotnet run
+          --project test/Serilog.Extensions.Formatting.AotTest/
+          --configuration Release 
+          --framework ${{ steps.target-framework.outputs.target-framework }}
+          --no-restore
+
+      - name: AOT Publish
+        run: >
+          dotnet publish test/Serilog.Extensions.Formatting.AotTest/
+          --configuration Release
+          --framework ${{ steps.target-framework.outputs.target-framework }}
+          --runtime ${{ steps.runtime-id.outputs.runtime-id }}
+          --self-contained
+          --no-restore
+
+      - name: Test AOT published executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: >
+          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/Serilog.Extensions.Formatting.AotTest.exe
+
+      - name: Test AOT published executable (Unix)
+        if: matrix.os != 'windows-latest'
+        run: >
+          ./test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/Serilog.Extensions.Formatting.AotTest
+
+      - name: Upload AOT executable artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aot-executable-${{ matrix.os }}-${{ steps.target-framework.outputs.target-framework }}
+          path: |
+            test/Serilog.Extensions.Formatting.AotTest/bin/Release/${{ steps.target-framework.outputs.target-framework }}/${{ steps.runtime-id.outputs.runtime-id }}/publish/
+          retention-days: 1
