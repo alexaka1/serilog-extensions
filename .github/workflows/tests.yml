@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-latest
           - windows-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
@@ -29,7 +29,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
         with:
-          disable-sudo: true
+          disable-sudo: false
           egress-policy: block
           allowed-endpoints: >
             aka.ms:443
@@ -54,6 +54,13 @@ jobs:
             objects-origin.githubusercontent.com:443
             github-releases.githubusercontent.com:443
             github-registry-files.githubusercontent.com:443
+            # Ubuntu APT mirrors for installing mono
+            azure.archive.ubuntu.com:80
+            archive.ubuntu.com:80
+            security.ubuntu.com:80
+            packages.microsoft.com:443
+            # Homebrew formula metadata (mono)
+            formulae.brew.sh:443
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -64,7 +71,19 @@ jobs:
         with:
           dotnet-version: |
             9.0.x
+            8.0.x
             6.0.x
+      - name: Install mono (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y mono-complete
+      - name: Install mono (macOS)
+        if: startsWith(matrix.os, 'macos')
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_ANALYTICS: 1
+        run: brew install mono
       - name: dotnet tool restore
         run: dotnet tool restore
       - name: Dotnet restore
