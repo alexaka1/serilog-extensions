@@ -68,5 +68,3 @@ jobs:
         run: dotnet tool restore
       - name: Restore Nuget
         run: dotnet restore
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
