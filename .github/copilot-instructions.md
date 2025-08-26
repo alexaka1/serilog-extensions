@@ -49,11 +49,7 @@ dotnet pack src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.cspr
 ```
 **Output**: Creates `.nupkg` and `.snupkg` files in `./artifacts/`
 
-### 6. Run Benchmarks (optional, ~2+ minutes)
-```bash
-dotnet run -c Release --project test/Serilog.Extensions.Formatting.Benchmark --framework net9.0 -- --filter '*JsonFormatterBenchmark*'
-```
-**Note**: Benchmarks are interactive if no filter specified. Use `--filter` to auto-run specific benchmarks, or answer prompts for interactive selection.
+
 
 ### Development Environment Setup
 
@@ -66,7 +62,7 @@ dotnet build -c Release --no-restore                                     # Build
 dotnet pack src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj -c Release -o ./artifacts  # Package (~1s)
 ```
 
-### 7. Code Coverage (local development)
+### 6. Code Coverage (local development)
 ```bash
 dotnet test -c Release --collect:"XPlat Code Coverage"
 ```
@@ -121,12 +117,11 @@ dotnet test --configuration Release --no-restore --logger trx --collect:"XPlat C
 ```
 
 ### Version Management
-Uses changesets for semantic versioning:
+Uses changesets for semantic versioning - agents only need to create changesets:
 ```bash
-yarn changeset              # Create a changeset
-yarn version               # Update versions (requires package.json + .csproj)
-./build/version.sh <package.json> <.csproj>  # Sync versions
+yarn changeset              # Create a changeset (major, minor, patch) for relevant changes
 ```
+**Note**: Version updates and releases are handled automatically by CI. Agents should only create changesets when making changes that require version bumps.
 
 ## Common Issues & Troubleshooting
 
@@ -185,12 +180,10 @@ Uses **Central Package Management** - all versions in `Directory.Packages.props`
 
 2. **Always validate changes** by running the build sequence above before considering work complete.
 
-3. **For performance changes**: Always run benchmarks to measure impact using the benchmark project.
+3. **For new features**: Add corresponding tests in the test project and ensure they pass across all target frameworks.
 
-4. **For new features**: Add corresponding tests in the test project and ensure they pass across all target frameworks.
+4. **For breaking changes**: Require a major version changeset via `yarn changeset`.
 
-5. **For breaking changes**: Require a major version changeset via `yarn changeset`.
+5. **Code changes should maintain thread safety** - follow the ThreadLocal pattern used in Utf8JsonFormatter.
 
-6. **Code changes should maintain thread safety** - follow the ThreadLocal pattern used in Utf8JsonFormatter.
-
-7. **When adding dependencies**: Update `Directory.Packages.props` not individual project files.
+6. **When adding dependencies**: Update `Directory.Packages.props` not individual project files.
