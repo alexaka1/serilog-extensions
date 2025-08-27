@@ -52,7 +52,7 @@ public class Program
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase, renderMessage: true), stringWriter))
             .CreateLogger();
 
         logger.Information("Hello, {Name}!", "World");
@@ -68,7 +68,7 @@ public class Program
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase, renderMessage: true), stringWriter))
             .CreateLogger();
 
         var complexObject = new
@@ -91,7 +91,7 @@ public class Program
         using var stringWriter = new StringWriter();
         using var logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
-            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase), stringWriter))
+            .WriteTo.Sink(new TestSink(new Utf8JsonFormatter(namingPolicy: JsonNamingPolicy.CamelCase, renderMessage: true), stringWriter))
             .CreateLogger();
 
         try
@@ -170,7 +170,7 @@ public class Program
                 if (root.TryGetProperty("renderedMessage", out var renderedMessage))
                 {
                     string renderedStr = renderedMessage.GetString();
-                    if (testCase == AotTestCase.BasicLogging && renderedStr.Contains("Hello, {Name}!"))
+                    if (testCase == AotTestCase.BasicLogging && renderedStr != null && renderedStr.Contains("Hello, {Name}!"))
                     {
                         throw new InvalidOperationException(
                             $"Message template not properly rendered in {testCase}: {renderedStr}");
