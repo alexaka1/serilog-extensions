@@ -8,7 +8,7 @@ concurrency: coverage-report
 permissions: { }
 jobs:
   report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     strategy:
       matrix:
         os:
