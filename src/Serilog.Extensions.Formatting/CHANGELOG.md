@@ -1,5 +1,11 @@
 # alexaka1.serilog.extensions.formatting
 
+## 0.6.0
+
+### Minor Changes
+
+- 9d7d999: Upgrade dependencies
+
 ## 0.5.0
 
 ### Minor Changes

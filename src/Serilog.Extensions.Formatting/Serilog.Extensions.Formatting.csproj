@@ -3,7 +3,7 @@
     <TargetFrameworks>net9.0;net8.0;net6.0;netstandard2.0</TargetFrameworks>
     <PackageId>Alexaka1.Serilog.Extensions.Formatting</PackageId>
     <Description>Serilog extensions for formatting</Description>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
     <Authors>Alex Martossy</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>serilog;json;utf8jsonwriter;system.text.json</PackageTags>
