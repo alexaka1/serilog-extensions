@@ -1,0 +1,90 @@
+name: AOT Tests
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+  workflow_call:
+permissions: { }
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CI: true
+jobs:
+  aot-test:
+    name: AOT Tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+          - ubuntu-24.04-arm
+          - windows-11-arm
+        tfm:
+          - 'net8.0'
+          - 'net9.0'
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          disable-sudo: false
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Dotnet
+        id: dotnet-setup
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+      - name: Set architecture
+        id: architecture
+        shell: bash
+        run: |
+          echo "arch=$(echo '${{ runner.arch }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Dotnet restore
+        run: dotnet restore --arch ${{ steps.architecture.outputs.arch }}
+
+      - name: Test AOT test project normally (pre-flight)
+        run: >
+          dotnet run
+          --project test/Serilog.Extensions.Formatting.AotTest/
+          --configuration Release 
+          --framework ${{ matrix.tfm }}
+
+      - name: AOT Publish
+        run: >
+          dotnet publish test/Serilog.Extensions.Formatting.AotTest/
+          --configuration Release
+          --framework ${{ matrix.tfm }}
+          --arch ${{ steps.architecture.outputs.arch }}
+          --output ./aot-output
+
+      - name: Test AOT published executable
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./aot-output/Serilog.Extensions.Formatting.AotTest.exe
+          else
+            ./aot-output/Serilog.Extensions.Formatting.AotTest
+          fi
+
+      - name: Upload AOT executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-executable-${{ matrix.os }}-${{ matrix.tfm }}-${{ steps.architecture.outputs.arch }}
+          path: ./aot-output/
+          retention-days: 1
