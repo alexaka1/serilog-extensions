@@ -14,12 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj" />
+    <ProjectReference Include="..\..\src\Serilog.Extensions.Formatting\Serilog.Extensions.Formatting.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog"/>
+    <PackageReference Include="Serilog.Sinks.Console"/>
   </ItemGroup>
 
 </Project>
