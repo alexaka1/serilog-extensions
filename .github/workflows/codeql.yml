@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "csharp" ]
+        language: [ "csharp", "actions" ]
         # CodeQL supports [ $supported-codeql-languages ]
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
@@ -69,6 +69,7 @@ jobs:
           persist-credentials: false
       - name: Setup Dotnet
         id: dotnet-setup
+        if: ${{ matrix.language == 'csharp' }}
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: |
