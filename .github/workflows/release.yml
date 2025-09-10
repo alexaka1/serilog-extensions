@@ -139,7 +139,7 @@ jobs:
         with:
           # we use credentials to push tags below
           persist-credentials: true
-      - uses: chainguard-dev/actions/setup-gitsign@95fc84d32bf6b043998e46a7b300ac7c2cb6a09f
+      - uses: chainguard-dev/actions/setup-gitsign@cd899cc96227b82170571cad1c3d6378d8cba678
       - name: Download nupkg
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
