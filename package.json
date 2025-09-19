@@ -9,7 +9,7 @@
   "workspaces": [
     "src/*"
   ],
-  "packageManager": "yarn@4.10.1+sha512.45bcc0f26c64f59bbfff2a721fbc8226f7a0fe5da70c116cecb09bdfed2514a4d5a22484b75103070175cee5d7d4ad3719cd4be029c94ae5848b44346aefe2a8",
+  "packageManager": "yarn@4.10.2+sha512.0b0e54ad5381f0a35184957bd3ea44e37f5a4fb1960b903b0fb9a3c7c2c009190455c41ef2a1977b1dbd3b72c5f152da696e9c52e2bc78a011b6adea8ee73ba3",
   "dependencies": {
     "@changesets/cli": "^2.27.11"
   }
