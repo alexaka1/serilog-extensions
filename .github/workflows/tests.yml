@@ -110,7 +110,7 @@ jobs:
           name: trx-reports-${{ matrix.os }}
           path: "./**/*.trx"
       - name: ReportGenerator
-        uses: danielpalme/ReportGenerator-GitHub-Action@5c07e4a90846ee6fd52c211620156d4679b03fcb # v5.4.14
+        uses: danielpalme/ReportGenerator-GitHub-Action@18e0cd4c1bebd0c8b3978b380a6a4ea61c51178e # v5.4.15
         with:
           reports: ./coverage/**/coverage.cobertura.xml
           targetdir: ./coverage
