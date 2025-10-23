@@ -58,7 +58,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/cli@npm:^2.27.11":
+"@changesets/cli@npm:2.29.7":
   version: 2.29.7
   resolution: "@changesets/cli@npm:2.29.7"
   dependencies:
@@ -848,7 +848,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "serilog-extensions@workspace:."
   dependencies:
-    "@changesets/cli": "npm:^2.27.11"
+    "@changesets/cli": "npm:2.29.7"
   languageName: unknown
   linkType: soft
 
