@@ -1,6 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:best-practices"
+    "config:best-practices",
+    "github>alexaka1/renovate-config",
+    "github>alexaka1/renovate-config:monorepos",
+    "github>alexaka1/renovate-config//opinionated/schedules",
+    "github>alexaka1/renovate-config//opinionated/labels",
+    ":rebaseStalePrs",
+    ":pinDependencies",
+    "security:minimumReleaseAgeNpm"
   ]
 }
