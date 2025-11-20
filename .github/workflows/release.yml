@@ -56,7 +56,7 @@ jobs:
             repo.yarnpkg.com:443
             *.sigstore.dev:443
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           persist-credentials: false
       - name: Setup Dotnet ${{ env.dotnet }}
@@ -135,7 +135,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           # we use credentials to push tags below
           persist-credentials: true
