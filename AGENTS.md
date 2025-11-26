@@ -29,8 +29,8 @@
 - Validate JSON with helpers when possible rather than string-fragile assertions.
 
 ## Versioning & Releases
-- Create a changeset: `yarn changeset` (workspace root).
-- Bump version and propagate to `.csproj`: `yarn version` (requires `jq`).
+- Create a changeset: `bun changeset` (workspace root).
+- Bump version and propagate to `.csproj`: `bun run version` (requires `jq`).
 - CI packs and, on release, publishes to NuGet (see `.github/workflows/release.yml`).
 
 ## Commits & Pull Requests
