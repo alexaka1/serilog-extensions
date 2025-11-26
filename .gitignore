@@ -363,7 +363,3 @@ FodyWeavers.xsd
 
 ### macOS
 .DS_Store
-### bun template
-# https://bun.sh/docs/install/lockfile
-# Binary lockfile used before bun v1.2 - if your lockfile is text-based, you can delete this line
-bun.lockb

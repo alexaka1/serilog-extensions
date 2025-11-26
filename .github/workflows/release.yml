@@ -7,7 +7,6 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
   dotnet: 9.0.x
-  bun: 1.3.3
   Project: src/Serilog.Extensions.Formatting
   PackageJson: src/Serilog.Extensions.Formatting/package.json
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
@@ -60,10 +59,10 @@ jobs:
         uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           dotnet-version: ${{ env.dotnet }}
-      - name: Setup Bun ${{ env.bun }}
+      - name: Setup Bun
         uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2
         with:
-          bun-version: ${{ env.bun }}
+          bun-version-file: ".bun-version"
       - name: Bun install
         run: bun install --frozen-lockfile
       - name: Create Release Pull Request or Prepare release

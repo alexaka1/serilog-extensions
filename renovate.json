@@ -9,20 +9,5 @@
     ":rebaseStalePrs",
     ":pinDependencies",
     "security:minimumReleaseAgeNpm"
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "fileMatch": [
-        "^\\.github/workflows/.*\\.ya?ml$"
-      ],
-      "matchStrings": [
-        "bun:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?",
-        "BUN_VERSION:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
-      ],
-      "depNameTemplate": "oven-sh/bun",
-      "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^bun-v(?<version>.*)$"
-    }
   ]
 }
