@@ -53,15 +53,12 @@ jobs:
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           persist-credentials: false
-      - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
         with:
-          node-version-file: .node-version
-          package-manager-cache: false
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Yarn install
-        run: yarn install --immutable
+          bun-version-file: ".bun-version"
+      - name: Bun install
+        run: bun install --frozen-lockfile
       - name: dotnet tool restore
         run: dotnet tool restore
       - name: Restore Nuget

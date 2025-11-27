@@ -7,12 +7,10 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions: { }
 env:
   dotnet: 9.0.x
-  node: 22.x
   Project: src/Serilog.Extensions.Formatting
   PackageJson: src/Serilog.Extensions.Formatting/package.json
   Csproj: src/Serilog.Extensions.Formatting/Serilog.Extensions.Formatting.csproj
   PackageName: alexaka1.serilog.extensions.formatting
-  YARN_ENABLE_HARDENED_MODE: 1
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 jobs:
@@ -52,8 +50,6 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
             registry.npmjs.org:443
-            registry.yarnpkg.com:443
-            repo.yarnpkg.com:443
             *.sigstore.dev:443
       - name: Checkout code
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -63,21 +59,18 @@ jobs:
         uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
         with:
           dotnet-version: ${{ env.dotnet }}
-      - name: Setup Node.js ${{ env.node }}
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
         with:
-          node-version: ${{ env.node }}
-          package-manager-cache: false
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Yarn install
-        run: yarn install --immutable
+          bun-version-file: ".bun-version"
+      - name: Bun install
+        run: bun install --frozen-lockfile
       - name: Create Release Pull Request or Prepare release
         id: changesets
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           # outputs versionExists=true if version already exists on nuget
-          version: yarn run version ${{ env.PackageJson }} ${{ env.Csproj }}
+          version: bun run version ${{ env.PackageJson }} ${{ env.Csproj }}
           commitMode: 'github-api'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
