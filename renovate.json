@@ -6,6 +6,7 @@
     "github>alexaka1/renovate-config:monorepos",
     "github>alexaka1/renovate-config//opinionated/schedules",
     "github>alexaka1/renovate-config//opinionated/labels",
+    "github>alexaka1/renovate-config//opinionated/security",
     ":rebaseStalePrs",
     ":pinDependencies",
     "security:minimumReleaseAgeNpm"
