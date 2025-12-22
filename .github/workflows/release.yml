@@ -29,6 +29,7 @@ jobs:
       issues: read
       id-token: write
       attestations: write
+      artifact-metadata: write
     outputs:
       publishable: ${{ steps.pack.outputs.canPack == 'true'}}
       version: ${{ steps.pack.outputs.version }}
