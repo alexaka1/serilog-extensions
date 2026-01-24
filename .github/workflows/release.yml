@@ -68,7 +68,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Create Release Pull Request or Prepare release
         id: changesets
-        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        uses: changesets/action@c48e67d110a68bc90ccf1098e9646092baacaa87 # v1.6.0
         with:
           # outputs versionExists=true if version already exists on nuget
           version: bun run version ${{ env.PackageJson }} ${{ env.Csproj }}
