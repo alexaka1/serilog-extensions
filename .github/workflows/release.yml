@@ -135,7 +135,7 @@ jobs:
           persist-credentials: true
       - uses: chainguard-dev/actions/setup-gitsign@eab208ef2d05b13404296a5e194a6b237e8bb213 # v1.6.4
       - name: Download nupkg
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: nuget
           path: ${{ github.workspace }}/artifacts
