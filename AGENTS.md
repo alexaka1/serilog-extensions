@@ -40,3 +40,41 @@
 
 ## Security & Tooling
 - NuGet uses `nuget.config`; keep API keys out of source. Never commit secrets.
+
+## Cursor Cloud specific instructions
+
+This repository is a **.NET library** (NuGet package), not a long-running service. No servers, databases, or Docker containers need to be started for development or validation.
+
+### Prerequisites (VM image / first-time setup)
+
+- **.NET SDKs 9.0, 8.0, and 6.0** on `PATH` (CI and local dev target all three). If missing, install via [dotnet-install.sh](https://dot.net/v1/dotnet-install.sh) into `$HOME/.dotnet` and add to `PATH`.
+- **`mono-complete`** (Linux) for `net472` / `net481` test TFMs.
+- **`bun`** (version in `.bun-version`) and **`jq`** for Changesets release tooling only — not required for build/test.
+
+### Standard validation loop
+
+From the repo root (see **Build, Test, Run** above):
+
+```bash
+dotnet restore
+dotnet build Serilog.Extensions.sln -c Release --no-restore
+dotnet test -c Release --no-build
+```
+
+There is no separate linter step; `Directory.Build.props` treats warnings as errors during build.
+
+### Runnable harnesses (not production apps)
+
+| Project | Purpose | Command |
+|---------|---------|---------|
+| `test/Serilog.Extensions.Formatting.Test` | xUnit tests (primary validation) | `dotnet test -c Release --no-build` |
+| `test/Serilog.Extensions.Formatting.AotTest` | Smoke test for `Utf8JsonFormatter` | `dotnet run -c Release --framework net9.0 --project test/Serilog.Extensions.Formatting.AotTest` |
+| `test/Serilog.Extensions.Formatting.Benchmark` | BenchmarkDotNet (slow; interactive) | `dotnet run -c Release --project test/Serilog.Extensions.Formatting.Benchmark` |
+
+The AotTest harness exercises core library behavior (camelCase JSON logging, complex objects, exceptions) and prints `SUCCESS: All AOT compatibility tests passed` on exit code 0.
+
+### Gotchas
+
+- Multi-target projects require `--framework` when using `dotnet run` (e.g. `--framework net9.0` for AotTest).
+- `net6.0` builds may emit NuGet TFM support warnings from transitive `9.x` packages; these are expected and do not fail the build.
+- AOT native publish (`clang`, `zlib1g-dev`) is only needed for the optional `aot-tests.yml` CI workflow, not for standard `dotnet test`.
