@@ -71,14 +71,11 @@ jobs:
         id: changesets
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
-          # outputs versionExists=true if version already exists on nuget
-          version: bun run version ${{ env.PackageJson }} ${{ env.Csproj }}
-          commitMode: 'github-api'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version-script: bun run version ${{ env.PackageJson }} ${{ env.Csproj }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Can pack?
         id: pack
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.has-changesets == 'false'
         shell: bash
         run: |
           set -e
