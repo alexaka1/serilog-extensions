@@ -45,6 +45,7 @@ jobs:
             api.nuget.org:443
             cdn.fwupd.org:443
             crl3.digicert.com:80
+            builds.dotnet.microsoft.com:443
             dotnetbuilds.azureedge.net:443
             dotnetcli.azureedge.net:443
             dc.services.visualstudio.com:443

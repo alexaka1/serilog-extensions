@@ -31,12 +31,16 @@ jobs:
         with:
           disable-sudo: false
           egress-policy: block
+          # Lines inside allowed-endpoints are parsed as hosts, not YAML comments.
+          # setup-dotnet currently downloads SDKs from builds.dotnet.microsoft.com
+          # (aka.ms redirects there; the old azureedge.net CDNs no longer resolve).
           allowed-endpoints: >
             aka.ms:443
             api.nuget.org:443
             crl3.digicert.com:80
             crl4.digicert.com:80
             dc.services.visualstudio.com:443
+            builds.dotnet.microsoft.com:443
             dotnetbuilds.azureedge.net:443
             dotnetcli.azureedge.net:443
             s.symcb.com:80
@@ -49,18 +53,16 @@ jobs:
             *.actions.githubusercontent.com:443
             codeload.github.com:443
             ghcr.io:443
-            *.actions.githubusercontent.com:443
             objects.githubusercontent.com:443
             objects-origin.githubusercontent.com:443
             github-releases.githubusercontent.com:443
             github-registry-files.githubusercontent.com:443
-            # Ubuntu APT mirrors for installing mono
             azure.archive.ubuntu.com:80
             archive.ubuntu.com:80
             security.ubuntu.com:80
             packages.microsoft.com:443
-            # Homebrew formula metadata (mono)
             formulae.brew.sh:443
+            pkg-containers.githubusercontent.com:443
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -99,7 +101,7 @@ jobs:
           --collect:"XPlat Code Coverage" 
           --results-directory ./coverage
       - name: TRX report
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.dotnet-setup.outcome == 'success' }}
         run: dotnet trx --gh-summary true --gh-comment true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
