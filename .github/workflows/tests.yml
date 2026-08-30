@@ -31,9 +31,6 @@ jobs:
         with:
           disable-sudo: false
           egress-policy: block
-          # Lines inside allowed-endpoints are parsed as hosts, not YAML comments.
-          # setup-dotnet currently downloads SDKs from builds.dotnet.microsoft.com
-          # (aka.ms redirects there; the old azureedge.net CDNs no longer resolve).
           allowed-endpoints: >
             aka.ms:443
             api.nuget.org:443
