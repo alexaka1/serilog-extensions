@@ -54,6 +54,7 @@ jobs:
             crl4.digicert.com:80
             dc.services.visualstudio.com:443
             aka.ms:443
+            builds.dotnet.microsoft.com:443
             dotnetbuilds.azureedge.net:443
             dotnetcli.azureedge.net:443
             github.com:443
